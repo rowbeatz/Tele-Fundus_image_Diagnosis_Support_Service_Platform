@@ -5,6 +5,9 @@ import { createJobsRouter } from './routes/jobs'
 import { createUploadsRouter } from './routes/uploads'
 import { deliveryRoutes } from './routes/deliveries'
 import { imageRoutes } from './routes/images'
+import { opsScreeningsRoutes } from './routes/ops-screenings'
+import { opsReadingsRoutes } from './routes/ops-readings'
+import { accountingRoutes } from './routes/accounting'
 import { DbSessionStore } from './infra/auth/session-store'
 import { ConsoleMailer } from './infra/mail/mailer'
 import { InMemoryJobQueue } from './infra/queue/job-queue'
@@ -26,6 +29,9 @@ app.route('/imports', importsRouter)
 app.route('/jobs', createJobsRouter(queue))
 app.route('/deliveries', deliveryRoutes)
 app.route('/images', imageRoutes)
+app.route('/ops-screenings', opsScreeningsRoutes)
+app.route('/ops-readings', opsReadingsRoutes)
+app.route('/accounting', accountingRoutes)
 
 
 const bucketName = process.env.AWS_S3_BUCKET || 'tele-fundus-portal-assets'
