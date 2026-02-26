@@ -1,0 +1,9 @@
+{
+  "name": "tele-fundus-platform",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "check": "node --check apps/api/src/app.ts"
+  }
+}
