@@ -4,7 +4,9 @@ import { FundusCanvas } from '../../components/canvas/FundusCanvas'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { api } from '../../lib/api'
-import { Sun, Contrast, RotateCcw, Save, Settings2 } from 'lucide-react'
+import { Sun, Contrast, RotateCcw, Save, Settings2, MessageCircle } from 'lucide-react'
+import { ChatPanel } from '../../components/chat/ChatPanel'
+import { VideoConference } from '../../components/chat/VideoConference'
 
 export default function DiagnosticViewer() {
     const { screeningId } = useParams()
@@ -17,6 +19,8 @@ export default function DiagnosticViewer() {
     const [brightness, setBrightness] = useState(100)
     const [contrast, setContrast] = useState(100)
     const [invert, setInvert] = useState(false)
+    const [showChat, setShowChat] = useState(false)
+    const [showVideoCall, setShowVideoCall] = useState(false)
 
     const [isSaving, setIsSaving] = useState(false)
 
@@ -176,6 +180,12 @@ export default function DiagnosticViewer() {
                             placeholder="Enter diagnostic notes here..."
                         ></textarea>
                     </div>
+
+                    <div className="pt-2">
+                        <Button variant="outline" onClick={() => setShowChat(true)} className="w-full justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200">
+                            <MessageCircle className="w-4 h-4 mr-2" /> Open Case Discussion
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="p-4 border-t border-gray-100 space-y-3">
@@ -192,6 +202,24 @@ export default function DiagnosticViewer() {
                     </Button>
                 </div>
             </Card>
+
+            {showChat && screeningId && (
+                <ChatPanel
+                    screeningId={screeningId}
+                    onClose={() => setShowChat(false)}
+                    onStartVideoCall={() => setShowVideoCall(true)}
+                />
+            )}
+
+            {showVideoCall && screeningId && (
+                <VideoConference
+                    screeningId={screeningId}
+                    onClose={() => setShowVideoCall(false)}
+                    onSyncPanChange={(x, y, zoom) => {
+                        console.log(`Sync Pan: x=${x} y=${y} zoom=${zoom}`)
+                    }}
+                />
+            )}
         </div>
     )
 }
