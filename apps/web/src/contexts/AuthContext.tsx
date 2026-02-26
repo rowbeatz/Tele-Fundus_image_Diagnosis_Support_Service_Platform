@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { api } from '../lib/api'
 
 type UserInfo = {
@@ -6,8 +6,10 @@ type UserInfo = {
     fullName: string
     email: string
     role: string
+    adminLevel: string
     organizationId?: string | null
     physicianId?: string | null
+    permissions: string[]
 }
 
 interface AuthContextType {
@@ -16,6 +18,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>
     logout: () => Promise<void>
     checkAuth: () => Promise<void>
+    hasPermission: (key: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -29,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsLoading(true)
             const res = await api.get('/auth/me')
             setUser(res.data.user)
-        } catch (e) {
+        } catch {
             setUser(null)
         } finally {
             setIsLoading(false)
@@ -48,12 +51,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null)
     }
 
+    const hasPermission = useCallback((key: string): boolean => {
+        if (!user) return false
+        // Super admin has all permissions
+        if (user.adminLevel === 'super_admin') return true
+        return user.permissions?.includes(key) ?? false
+    }, [user])
+
     useEffect(() => {
         checkAuth()
     }, [])
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout, checkAuth }}>
+        <AuthContext.Provider value={{ user, isLoading, login, logout, checkAuth, hasPermission }}>
             {children}
         </AuthContext.Provider>
     )

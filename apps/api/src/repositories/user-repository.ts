@@ -8,6 +8,7 @@ export type UserRecord = {
   passwordHash: string
   fullName: string
   role: string
+  adminLevel: string
   isActive: boolean
   lastLoginAt?: string | null
   createdAt: string
@@ -15,7 +16,7 @@ export type UserRecord = {
 }
 
 export class UserRepository {
-  constructor(private readonly db: DbLike) {}
+  constructor(private readonly db: DbLike) { }
 
   async findByEmail(email: string): Promise<UserRecord | null> {
     const result = await this.db.query<UserRecord>(
@@ -28,6 +29,7 @@ export class UserRepository {
         password_hash as "passwordHash",
         full_name as "fullName",
         role,
+        coalesce(admin_level, 'standard') as "adminLevel",
         is_active as "isActive",
         last_login_at as "lastLoginAt",
         created_at as "createdAt",
@@ -62,6 +64,7 @@ export class UserRepository {
         password_hash as "passwordHash",
         full_name as "fullName",
         role,
+        coalesce(admin_level, 'standard') as "adminLevel",
         is_active as "isActive",
         last_login_at as "lastLoginAt",
         created_at as "createdAt",
@@ -102,5 +105,39 @@ export class UserRepository {
       [limit, offset]
     )
     return result.rows
+  }
+
+  async getUserPermissions(userId: string, role: string): Promise<string[]> {
+    // Get permissions from role
+    const rolePerms = await this.db.query<{ key: string }>(
+      `
+      SELECT p.key
+      FROM permissions p
+      JOIN role_permissions rp ON rp.permission_id = p.id
+      JOIN roles r ON r.id = rp.role_id
+      WHERE r.name = $1
+      `,
+      [role]
+    )
+
+    const permSet = new Set(rolePerms.rows.map(r => r.key))
+
+    // Apply user-level overrides
+    const overrides = await this.db.query<{ key: string; effect: string }>(
+      `
+      SELECT p.key, up.effect
+      FROM user_permissions up
+      JOIN permissions p ON p.id = up.permission_id
+      WHERE up.user_id = $1
+      `,
+      [userId]
+    )
+
+    for (const o of overrides.rows) {
+      if (o.effect === 'grant') permSet.add(o.key)
+      else if (o.effect === 'deny') permSet.delete(o.key)
+    }
+
+    return Array.from(permSet)
   }
 }

@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useBrand } from '../contexts/BrandContext'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation, LanguageToggle } from '../lib/i18n'
-import { Eye, ShieldCheck, BarChart3, Clock, Camera } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 
 export default function Login() {
     const [email, setEmail] = useState('')
@@ -10,6 +11,7 @@ export default function Login() {
     const [error, setError] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const { login } = useAuth()
+    const { brand } = useBrand()
     const navigate = useNavigate()
     const { t } = useTranslation()
 
@@ -21,51 +23,41 @@ export default function Login() {
         try {
             await login(email, password)
             navigate('/dashboard')
-        } catch (err: any) {
-            setError(err.response?.data?.error || t('auth.error.invalid'))
+        } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: string } } }
+            setError(axiosErr.response?.data?.error || t('auth.error.invalid'))
         } finally {
             setIsSubmitting(false)
         }
     }
-
-    const heroStats = [
-        { icon: Camera, value: t('hero.stat1.value'), label: t('hero.stat1.label') },
-        { icon: BarChart3, value: t('hero.stat2.value'), label: t('hero.stat2.label') },
-        { icon: Clock, value: t('hero.stat3.value'), label: t('hero.stat3.label') },
-    ]
 
     return (
         <div className="login-page">
             {/* Left: Hero */}
             <div className="login-hero">
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 500 }}>
-                    <div style={{
-                        width: 64, height: 64, borderRadius: 16,
-                        background: 'rgba(255,255,255,0.1)',
-                        backdropFilter: 'blur(12px)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        margin: '0 auto 24px',
-                    }}>
-                        <Eye style={{ width: 32, height: 32, color: 'var(--teal-200)' }} />
+                    <div style={{ marginBottom: 24 }}>
+                        <img
+                            src={brand.logoUrl}
+                            alt={brand.platformName}
+                            style={{ width: 80, height: 80, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
+                        />
                     </div>
                     <h1 style={{
-                        color: 'white', fontSize: '2.5rem', fontWeight: 700,
-                        lineHeight: 1.2, marginBottom: 16, letterSpacing: '-0.03em',
-                        whiteSpace: 'pre-line',
+                        color: 'white', fontSize: '3rem', fontWeight: 700,
+                        lineHeight: 1.1, marginBottom: 12, letterSpacing: '-0.04em',
                     }}>
-                        {t('hero.title')}
+                        {brand.platformName}
                     </h1>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', lineHeight: 1.6, marginBottom: 40 }}>
+                    <p style={{
+                        color: 'var(--teal-200)', fontSize: '1.1rem', fontWeight: 500,
+                        fontStyle: 'italic', letterSpacing: '0.02em', marginBottom: 24,
+                    }}>
+                        {brand.tagline}
+                    </p>
+                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem', lineHeight: 1.6 }}>
                         {t('hero.subtitle')}
                     </p>
-                    <div style={{ display: 'flex', gap: 32, justifyContent: 'center' }}>
-                        {heroStats.map((s, i) => (
-                            <div key={i} style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--teal-200)' }}>{s.value}</div>
-                                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{s.label}</div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
 
@@ -132,7 +124,7 @@ export default function Login() {
                             {t('auth.demo.title')}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.8 }}>
-                            {t('auth.demo.admin')}<br />
+                            {t('auth.demo.super_admin')}<br />
                             {t('auth.demo.operator')}<br />
                             {t('auth.demo.physician')}<br />
                             {t('auth.demo.client')}

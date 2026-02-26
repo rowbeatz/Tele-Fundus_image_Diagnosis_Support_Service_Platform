@@ -816,3 +816,117 @@ textarea.input-field {
   background: var(--bg);
   color: var(--text-primary);
 }
+
+/* ── Modal ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+  width: 90%;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ── Select ────────────────────────────────────────────── */
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.select-wrapper select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.select-wrapper .select-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+/* ── Admin Sub-Nav ─────────────────────────────────────── */
+.sidebar-section-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-sub-nav {
+  padding-left: 12px;
+}
+
+.sidebar-sub-link {
+  font-size: 0.85rem !important;
+  padding-left: 20px !important;
+  opacity: 0.85;
+}
+
+.sidebar-sub-link.active {
+  opacity: 1;
+}
+
+/* ── Permission Matrix ─────────────────────────────────── */
+.permission-matrix th,
+.permission-matrix td {
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.permission-matrix .category-row td {
+  padding: 6px 16px;
+}
+
+/* ── Spin Animation ────────────────────────────────────── */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Badge Danger ──────────────────────────────────────── */
+.badge-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+}

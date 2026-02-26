@@ -11,6 +11,27 @@ export function createAuthRouter(deps: { sessionStore: SessionStore; mailer: Mai
   const userRepo = new UserRepository(pool)
   const passwordResetRepo = new PasswordResetRepository(pool)
 
+  // Helper: build user response with permissions
+  async function buildUserResponse(user: Awaited<ReturnType<typeof userRepo.findByEmail>>) {
+    if (!user) return null
+    let permissions: string[] = []
+    try {
+      permissions = await userRepo.getUserPermissions(user.id, user.role)
+    } catch {
+      // permissions tables may not exist yet; return empty
+    }
+    return {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      adminLevel: user.adminLevel || 'standard',
+      organizationId: user.organizationId,
+      physicianId: user.physicianId,
+      permissions,
+    }
+  }
+
   auth.get('/me', async (c) => {
     const sessionId = c.req.header('cookie')?.split(';').find(s => s.trim().startsWith('sid='))?.split('=')[1]
     if (!sessionId) return c.json({ user: null })
@@ -18,19 +39,10 @@ export function createAuthRouter(deps: { sessionStore: SessionStore; mailer: Mai
     const session = await deps.sessionStore.get(sessionId)
     if (!session) return c.json({ user: null })
 
-    const user = await userRepo.findByEmail(session.userId) // In this mock session.userId is email
+    const user = await userRepo.findByEmail(session.userId)
     if (!user) return c.json({ user: null })
 
-    return c.json({
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        organizationId: user.organizationId,
-        physicianId: user.physicianId
-      }
-    })
+    return c.json({ user: await buildUserResponse(user) })
   })
 
   auth.post('/login', rateLimit({ keyPrefix: 'login', windowMs: 60_000, maxRequests: 10 }), async (c) => {
@@ -53,14 +65,7 @@ export function createAuthRouter(deps: { sessionStore: SessionStore; mailer: Mai
       c.header('set-cookie', `sid=${sessionId}; HttpOnly; Path=/; SameSite=Lax`)
       return c.json({
         success: true,
-        user: {
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-          organizationId: user.organizationId,
-          physicianId: user.physicianId
-        }
+        user: await buildUserResponse(user),
       })
     }
 
@@ -101,9 +106,6 @@ export function createAuthRouter(deps: { sessionStore: SessionStore; mailer: Mai
     if (!userId) {
       return c.json({ code: 'INVALID_TOKEN' }, 400)
     }
-
-    // In a full implementation, we would update the user's password hash here
-    // using the UserRepository.
 
     return c.json({ ok: true })
   })

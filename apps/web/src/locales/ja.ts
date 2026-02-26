@@ -2,8 +2,8 @@ import type { TranslationKey } from './en'
 
 export const ja: Record<TranslationKey, string> = {
     // Global
-    'app.name': 'テレファンダス',
-    'app.tagline': '遠隔眼底画像診断支援プラットフォーム',
+    'app.name': 'RetinaInsight',
+    'app.tagline': '全てのピクセルに精密を。',
     'app.version': 'v0.1.0 エンタープライズ',
     'app.secure': 'HIPAA準拠 セキュア医療プラットフォーム',
 
@@ -19,21 +19,16 @@ export const ja: Record<TranslationKey, string> = {
     'auth.signing_in': 'サインイン中…',
     'auth.error.invalid': 'メールアドレスまたはパスワードが正しくありません',
     'auth.demo.title': 'デモアカウント',
-    'auth.demo.admin': '管理者: admin@telefundus.jp',
-    'auth.demo.operator': 'オペレーター: operator@telefundus.jp',
-    'auth.demo.physician': '読影医: dr.tanaka@telefundus.jp',
+    'auth.demo.super_admin': '特権管理者: admin@retinainsight.jp',
+    'auth.demo.operator': 'オペレーター: operator@retinainsight.jp',
+    'auth.demo.physician': '読影医: dr.tanaka@retinainsight.jp',
     'auth.demo.client': 'クライアント: client@sakura-hospital.jp',
     'auth.signout': 'サインアウト',
 
     // Hero
-    'hero.title': '次世代\n眼底画像診断',
+    'hero.title': 'RetinaInsight',
+    'hero.tagline': '全てのピクセルに精密を。',
     'hero.subtitle': 'AI搭載の網膜画像解析が、安全なHIPAA準拠の遠隔医療ワークフローで眼科医を支援します。',
-    'hero.stat1.value': '50,000+',
-    'hero.stat1.label': '解析済み画像',
-    'hero.stat2.value': '99.2%',
-    'hero.stat2.label': '精度',
-    'hero.stat3.value': '< 24時間',
-    'hero.stat3.label': '平均所要時間',
 
     // Nav
     'nav.dashboard': 'ダッシュボード',
@@ -46,6 +41,11 @@ export const ja: Record<TranslationKey, string> = {
     'nav.billing': '請求・決済',
     'nav.settings': '設定',
     'nav.viewer': '診断ビューワ',
+    'nav.users': 'ユーザー管理',
+    'nav.roles': '権限設定',
+    'nav.image_governance': '画像ガバナンス',
+    'nav.brand': 'ブランド設定',
+    'nav.admin': '管理',
 
     // Dashboard
     'dashboard.title': 'ダッシュボード',
@@ -128,4 +128,77 @@ export const ja: Record<TranslationKey, string> = {
     // Language
     'lang.en': 'EN',
     'lang.ja': 'JP',
+
+    // Admin: User Management
+    'admin.users.title': 'ユーザー管理',
+    'admin.users.add': 'ユーザー追加',
+    'admin.users.edit': 'ユーザー編集',
+    'admin.users.name': '氏名',
+    'admin.users.email': 'メールアドレス',
+    'admin.users.role': '役割',
+    'admin.users.admin_level': '管理者レベル',
+    'admin.users.status': 'ステータス',
+    'admin.users.active': '有効',
+    'admin.users.inactive': '無効',
+    'admin.users.last_login': '最終ログイン',
+    'admin.users.save': '保存',
+    'admin.users.cancel': 'キャンセル',
+    'admin.users.super_admin': '特権管理者',
+    'admin.users.standard': '一般管理者',
+    'admin.users.confirm_deactivate': 'このユーザーを無効にしますか？',
+
+    // Admin: Roles & Permissions
+    'admin.roles.title': '権限設定',
+    'admin.roles.matrix': '権限マトリクス',
+    'admin.roles.category': 'カテゴリ',
+    'admin.roles.permission': '権限',
+    'admin.roles.overrides': 'ユーザー別オーバーライド',
+    'admin.roles.save': '権限を保存',
+    'admin.roles.saved': '権限を保存しました',
+
+    // Permission categories
+    'perm.cat.dashboard': 'ダッシュボード',
+    'perm.cat.screening': 'スクリーニング',
+    'perm.cat.reading': '読影',
+    'perm.cat.image': '画像',
+    'perm.cat.user': 'ユーザー管理',
+    'perm.cat.role': '権限管理',
+    'perm.cat.organization': '医療機関',
+    'perm.cat.billing': '請求',
+    'perm.cat.settings': '設定',
+    'perm.cat.data': 'データガバナンス',
+
+    // Admin: Image Governance
+    'admin.image.title': '画像ガバナンス',
+    'admin.image.policies': '医療機関別ポリシー',
+    'admin.image.deletion': '削除ポリシー',
+    'admin.image.deletion.allow': '削除許可',
+    'admin.image.deletion.deny': '削除禁止',
+    'admin.image.deletion.admin_only': '管理者のみ',
+    'admin.image.secondary': '二次利用',
+    'admin.image.secondary.allowed': '許可',
+    'admin.image.secondary.denied': '不許可',
+    'admin.image.secondary.requires_consent': '同意必要',
+    'admin.image.masking': 'データマスキング',
+    'admin.image.masking.enabled': '有効',
+    'admin.image.masking.disabled': '無効',
+    'admin.image.consent': '同意管理',
+    'admin.image.consent.direct': 'ダイレクトコンセント',
+    'admin.image.consent.status': '同意ステータス',
+    'admin.image.consent.granted': '同意済',
+    'admin.image.consent.revoked': '取消済',
+    'admin.image.consent.pending': '保留中',
+    'admin.image.client_type': 'クライアント種別',
+    'admin.image.client_type.org': '法人',
+    'admin.image.client_type.individual': '個人',
+
+    // Admin: Brand Settings
+    'admin.brand.title': 'ブランド設定',
+    'admin.brand.logo': 'プラットフォームロゴ',
+    'admin.brand.upload': 'ロゴをアップロード',
+    'admin.brand.name': 'プラットフォーム名',
+    'admin.brand.tagline': 'タグライン',
+    'admin.brand.preview': 'プレビュー',
+    'admin.brand.save': 'ブランドを保存',
+    'admin.brand.reset': 'デフォルトに戻す',
 }

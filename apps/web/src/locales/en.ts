@@ -1,7 +1,7 @@
 export const en = {
     // Global
-    'app.name': 'Tele-Fundus',
-    'app.tagline': 'Remote Fundus Image Diagnosis Support Platform',
+    'app.name': 'RetinaInsight',
+    'app.tagline': 'Precision in Every Pixel.',
     'app.version': 'v0.1.0 Enterprise',
     'app.secure': 'HIPAA-Compliant Secure Medical Platform',
 
@@ -17,21 +17,16 @@ export const en = {
     'auth.signing_in': 'Signing in…',
     'auth.error.invalid': 'Invalid email or password',
     'auth.demo.title': 'Demo Accounts',
-    'auth.demo.admin': 'Admin: admin@telefundus.jp',
-    'auth.demo.operator': 'Operator: operator@telefundus.jp',
-    'auth.demo.physician': 'Physician: dr.tanaka@telefundus.jp',
+    'auth.demo.super_admin': 'Super Admin: admin@retinainsight.jp',
+    'auth.demo.operator': 'Operator: operator@retinainsight.jp',
+    'auth.demo.physician': 'Physician: dr.tanaka@retinainsight.jp',
     'auth.demo.client': 'Client: client@sakura-hospital.jp',
     'auth.signout': 'Sign Out',
 
     // Hero
-    'hero.title': 'Next-Generation\nFundus Diagnosis',
+    'hero.title': 'RetinaInsight',
+    'hero.tagline': 'Precision in Every Pixel.',
     'hero.subtitle': 'AI-powered retinal image analysis supporting ophthalmologists with secure, HIPAA-compliant telemedicine workflows.',
-    'hero.stat1.value': '50,000+',
-    'hero.stat1.label': 'Images Analyzed',
-    'hero.stat2.value': '99.2%',
-    'hero.stat2.label': 'Accuracy Rate',
-    'hero.stat3.value': '< 24h',
-    'hero.stat3.label': 'Avg. Turnaround',
 
     // Nav
     'nav.dashboard': 'Dashboard',
@@ -44,6 +39,11 @@ export const en = {
     'nav.billing': 'Billing & Payments',
     'nav.settings': 'Settings',
     'nav.viewer': 'Diagnostic Viewer',
+    'nav.users': 'User Management',
+    'nav.roles': 'Roles & Permissions',
+    'nav.image_governance': 'Image Governance',
+    'nav.brand': 'Brand Settings',
+    'nav.admin': 'Administration',
 
     // Dashboard
     'dashboard.title': 'Dashboard',
@@ -126,6 +126,79 @@ export const en = {
     // Language
     'lang.en': 'EN',
     'lang.ja': 'JP',
+
+    // Admin: User Management
+    'admin.users.title': 'User Management',
+    'admin.users.add': 'Add User',
+    'admin.users.edit': 'Edit User',
+    'admin.users.name': 'Full Name',
+    'admin.users.email': 'Email',
+    'admin.users.role': 'Role',
+    'admin.users.admin_level': 'Admin Level',
+    'admin.users.status': 'Status',
+    'admin.users.active': 'Active',
+    'admin.users.inactive': 'Inactive',
+    'admin.users.last_login': 'Last Login',
+    'admin.users.save': 'Save',
+    'admin.users.cancel': 'Cancel',
+    'admin.users.super_admin': 'Super Admin',
+    'admin.users.standard': 'Standard',
+    'admin.users.confirm_deactivate': 'Deactivate this user?',
+
+    // Admin: Roles & Permissions
+    'admin.roles.title': 'Roles & Permissions',
+    'admin.roles.matrix': 'Permission Matrix',
+    'admin.roles.category': 'Category',
+    'admin.roles.permission': 'Permission',
+    'admin.roles.overrides': 'User-Level Overrides',
+    'admin.roles.save': 'Save Permissions',
+    'admin.roles.saved': 'Permissions saved successfully',
+
+    // Permission categories
+    'perm.cat.dashboard': 'Dashboard',
+    'perm.cat.screening': 'Screening',
+    'perm.cat.reading': 'Reading',
+    'perm.cat.image': 'Image',
+    'perm.cat.user': 'User Management',
+    'perm.cat.role': 'Role Management',
+    'perm.cat.organization': 'Organization',
+    'perm.cat.billing': 'Billing',
+    'perm.cat.settings': 'Settings',
+    'perm.cat.data': 'Data Governance',
+
+    // Admin: Image Governance
+    'admin.image.title': 'Image Governance',
+    'admin.image.policies': 'Organization Policies',
+    'admin.image.deletion': 'Deletion Policy',
+    'admin.image.deletion.allow': 'Allow Deletion',
+    'admin.image.deletion.deny': 'Deny Deletion',
+    'admin.image.deletion.admin_only': 'Admin Only',
+    'admin.image.secondary': 'Secondary Use',
+    'admin.image.secondary.allowed': 'Allowed',
+    'admin.image.secondary.denied': 'Denied',
+    'admin.image.secondary.requires_consent': 'Requires Consent',
+    'admin.image.masking': 'Data Masking',
+    'admin.image.masking.enabled': 'Enabled',
+    'admin.image.masking.disabled': 'Disabled',
+    'admin.image.consent': 'Consent Management',
+    'admin.image.consent.direct': 'Direct Consent',
+    'admin.image.consent.status': 'Consent Status',
+    'admin.image.consent.granted': 'Granted',
+    'admin.image.consent.revoked': 'Revoked',
+    'admin.image.consent.pending': 'Pending',
+    'admin.image.client_type': 'Client Type',
+    'admin.image.client_type.org': 'Organization',
+    'admin.image.client_type.individual': 'Individual',
+
+    // Admin: Brand Settings
+    'admin.brand.title': 'Brand Settings',
+    'admin.brand.logo': 'Platform Logo',
+    'admin.brand.upload': 'Upload Logo',
+    'admin.brand.name': 'Platform Name',
+    'admin.brand.tagline': 'Tagline',
+    'admin.brand.preview': 'Preview',
+    'admin.brand.save': 'Save Brand',
+    'admin.brand.reset': 'Reset to Default',
 } as const
 
 export type TranslationKey = keyof typeof en

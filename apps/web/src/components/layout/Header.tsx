@@ -1,94 +1,67 @@
 import { useAuth } from '../../contexts/AuthContext'
+import { useBrand } from '../../contexts/BrandContext'
 import { useTranslation, LanguageToggle } from '../../lib/i18n'
-import { Bell, LogOut, User } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export function Header() {
     const { user, logout } = useAuth()
+    const { brand } = useBrand()
     const { t } = useTranslation()
+    const navigate = useNavigate()
 
-    const initials = (user?.fullName || 'U')
-        .split(' ')
-        .map(n => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
+    const handleLogout = async () => {
+        await logout()
+        navigate('/login')
+    }
+
+    const roleBadgeColor: Record<string, string> = {
+        admin: '#ef4444',
+        operator: '#f59e0b',
+        physician: '#3b82f6',
+        client: '#10b981',
+    }
+
+    const roleLabels: Record<string, string> = {
+        admin: 'Admin',
+        operator: 'Operator',
+        physician: 'Physician',
+        client: 'Client',
+    }
 
     return (
-        <header style={{
-            height: 'var(--header-height)',
-            background: 'var(--surface)',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 24px',
-            flexShrink: 0,
-        }}>
-            {/* Left – Title */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>
-                    {t('app.name')}
-                </h2>
+        <header className="header">
+            <div className="header-left">
+                <span className="header-brand">{brand.platformName}</span>
                 {user?.role && (
-                    <span className="badge badge-teal" style={{ textTransform: 'capitalize' }}>
-                        {user.role}
+                    <span className="header-role-badge" style={{ background: roleBadgeColor[user.role] || '#6b7280' }}>
+                        {roleLabels[user.role] || user.role}
                     </span>
                 )}
             </div>
 
-            {/* Right – Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="header-actions">
                 <LanguageToggle />
 
-                <button style={{
-                    position: 'relative', width: 38, height: 38,
-                    borderRadius: 'var(--radius)', border: '1px solid var(--border)',
-                    background: 'transparent', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 0.15s ease',
-                }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                    <Bell style={{ width: 18, height: 18, color: 'var(--text-secondary)' }} />
-                    <span style={{
-                        position: 'absolute', top: -4, right: -4,
-                        width: 18, height: 18, borderRadius: '50%',
-                        background: 'var(--danger)', color: 'white',
-                        fontSize: '0.65rem', fontWeight: 700,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>3</span>
+                <button className="header-icon-btn" style={{ position: 'relative' }}>
+                    <Bell style={{ width: 20, height: 20 }} />
+                    <span className="notification-dot">3</span>
                 </button>
 
-                <div style={{
-                    height: 32, width: 1, background: 'var(--border)',
-                }} />
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div className="avatar avatar-teal">
-                        {initials || <User style={{ width: 16, height: 16 }} />}
+                <div className="header-user">
+                    <div className="avatar" style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        background: 'var(--primary)', color: 'white',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.75rem', fontWeight: 700,
+                    }}>
+                        {user?.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}
                     </div>
-                    <div style={{ lineHeight: 1.3 }}>
-                        <div style={{ fontSize: '0.866rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                            {user?.fullName || 'User'}
-                        </div>
-                    </div>
+                    <span className="header-username">{user?.fullName}</span>
                 </div>
 
-                <button
-                    onClick={logout}
-                    title={t('auth.signout')}
-                    style={{
-                        width: 38, height: 38, borderRadius: 'var(--radius)',
-                        border: '1px solid var(--border)',
-                        background: 'transparent', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-light)'; e.currentTarget.style.borderColor = 'var(--danger)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)' }}
-                >
-                    <LogOut style={{ width: 18, height: 18, color: 'var(--text-secondary)' }} />
+                <button className="header-icon-btn" onClick={handleLogout} title={t('auth.signout')}>
+                    <LogOut style={{ width: 18, height: 18 }} />
                 </button>
             </div>
         </header>
