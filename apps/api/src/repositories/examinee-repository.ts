@@ -8,6 +8,8 @@ export type ExamineeRecord = {
   sex?: string | null
   birthDate?: string | null
   age?: number | null
+  medicalHistoryJson?: string | null
+  ocularHistoryJson?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -19,6 +21,8 @@ export type CreateExamineeInput = {
   sex?: string
   birthDate?: string
   age?: number
+  medicalHistoryJson?: string
+  ocularHistoryJson?: string
 }
 
 export class ExamineeRepository {
@@ -28,9 +32,10 @@ export class ExamineeRepository {
     const result = await this.db.query<ExamineeRecord>(
       `
       insert into examinees (
-        organization_id, external_examinee_id, display_name, sex, birth_date, age
+        organization_id, external_examinee_id, display_name, sex, birth_date, age,
+        medical_history_json, ocular_history_json
       ) values (
-        $1, $2, $3, $4, $5, $6
+        $1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb
       ) returning
         id,
         organization_id as "organizationId",
@@ -39,6 +44,8 @@ export class ExamineeRepository {
         sex,
         birth_date as "birthDate",
         age,
+        medical_history_json::text as "medicalHistoryJson",
+        ocular_history_json::text as "ocularHistoryJson",
         created_at as "createdAt",
         updated_at as "updatedAt"
       `,
@@ -48,7 +55,9 @@ export class ExamineeRepository {
         input.displayName,
         input.sex,
         input.birthDate,
-        input.age
+        input.age,
+        input.medicalHistoryJson,
+        input.ocularHistoryJson,
       ]
     )
 
@@ -66,6 +75,8 @@ export class ExamineeRepository {
         sex,
         birth_date as "birthDate",
         age,
+        medical_history_json::text as "medicalHistoryJson",
+        ocular_history_json::text as "ocularHistoryJson",
         created_at as "createdAt",
         updated_at as "updatedAt"
       from examinees
@@ -87,6 +98,8 @@ export class ExamineeRepository {
         sex,
         birth_date as "birthDate",
         age,
+        medical_history_json::text as "medicalHistoryJson",
+        ocular_history_json::text as "ocularHistoryJson",
         created_at as "createdAt",
         updated_at as "updatedAt"
       from examinees
