@@ -1,16 +1,74 @@
-import { useState, useCallback } from 'react'
-import { Outlet, Navigate, useLocation } from 'react-router-dom'
+import { useState, useCallback, useEffect } from 'react'
+import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTranslation } from '../../lib/i18n'
+import { useTabs } from '../../contexts/TabContext'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
+import { ChatPanel } from '../communication/ChatPanel'
+import { X } from 'lucide-react'
+
+// Map paths to translation keys for tab titles
+const pathToTitleKey: Record<string, string> = {
+    '/dashboard': 'nav.dashboard',
+    '/patients': 'nav.patients',
+    '/uploads': 'nav.uploads',
+    '/readings': 'nav.readings',
+    '/ops/tasks': 'nav.tasks',
+    '/ops/qc': 'nav.qc',
+    '/admin/organizations': 'nav.organizations',
+    '/admin/billing': 'nav.billing',
+    '/admin/settings': 'nav.settings',
+    '/admin/users': 'nav.users',
+    '/admin/roles': 'nav.roles',
+    '/admin/image-governance': 'nav.image_governance',
+    '/admin/brand': 'nav.brand',
+}
 
 export function MainLayout() {
     const { user, isLoading } = useAuth()
+    const { t } = useTranslation()
     const location = useLocation()
+    const navigate = useNavigate()
+    const { tabs, activeTabId, openTab, closeTab, switchTab } = useTabs()
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [chatOpen, setChatOpen] = useState(false)
 
     const toggleSidebar = useCallback(() => setSidebarOpen(p => !p), [])
     const closeSidebar = useCallback(() => setSidebarOpen(false), [])
+    const toggleChat = useCallback(() => setChatOpen(p => !p), [])
+    const closeChat = useCallback(() => setChatOpen(false), [])
+
+    // Auto-open tab when navigating
+    useEffect(() => {
+        const path = location.pathname
+        const titleKey = pathToTitleKey[path]
+        if (titleKey) {
+            openTab({ title: t(titleKey as any), path })
+        }
+    }, [location.pathname])
+
+    // Navigate when switching tabs
+    const handleTabClick = (tabId: string) => {
+        const tab = tabs.find(t => t.id === tabId)
+        if (tab) {
+            switchTab(tabId)
+            navigate(tab.path)
+        }
+    }
+
+    const handleTabClose = (e: React.MouseEvent, tabId: string) => {
+        e.stopPropagation()
+        const tab = tabs.find(t => t.id === tabId)
+        closeTab(tabId)
+        // If closing active tab, navigate to neighbor
+        if (tab && activeTabId === tabId) {
+            const remaining = tabs.filter(t => t.id !== tabId)
+            if (remaining.length > 0) {
+                navigate(remaining[remaining.length - 1].path)
+            }
+        }
+    }
 
     if (isLoading) {
         return (
@@ -36,23 +94,49 @@ export function MainLayout() {
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-            {/* Mobile overlay */}
             <div
                 className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
                 onClick={closeSidebar}
             />
             <Sidebar open={sidebarOpen} onClose={closeSidebar} />
             <div className="layout-content">
-                <Header onMenuToggle={toggleSidebar} />
+                <Header onMenuToggle={toggleSidebar} onChatToggle={toggleChat} chatOpen={chatOpen} />
+
+                {/* Tab Bar — "browser within browser" secondary toolbar */}
+                {tabs.length > 0 && (
+                    <div className="tab-bar">
+                        <div className="tab-bar-inner">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    className={`tab-item ${activeTabId === tab.id ? 'active' : ''}`}
+                                    onClick={() => handleTabClick(tab.id)}
+                                >
+                                    <span className="tab-title">{tab.title}</span>
+                                    <span
+                                        className="tab-close"
+                                        onClick={(e) => handleTabClose(e, tab.id)}
+                                    >
+                                        <X style={{ width: 12, height: 12 }} />
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <main style={{
                     flex: 1, overflowY: 'auto', padding: '24px 28px',
                     scrollBehavior: 'smooth',
                 }}>
-                    <div style={{ maxWidth: 1280, margin: '0 auto' }} className="animate-fade-in">
+                    <div style={{ maxWidth: 1280, margin: '0 auto' }} className="animate-page-in">
                         <Outlet />
                     </div>
                 </main>
             </div>
+
+            {/* Chat Panel */}
+            <ChatPanel open={chatOpen} onClose={closeChat} />
         </div>
     )
 }

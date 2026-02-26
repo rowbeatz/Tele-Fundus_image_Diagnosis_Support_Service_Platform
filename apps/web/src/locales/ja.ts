@@ -194,6 +194,7 @@ export const ja: Record<TranslationKey, string> = {
 
     // Admin: Brand Settings
     'admin.brand.title': 'ブランド設定',
+    'admin.brand.subtitle': 'ホワイトレーベル設定',
     'admin.brand.logo': 'プラットフォームロゴ',
     'admin.brand.upload': 'ロゴをアップロード',
     'admin.brand.name': 'プラットフォーム名',
@@ -201,4 +202,19 @@ export const ja: Record<TranslationKey, string> = {
     'admin.brand.preview': 'プレビュー',
     'admin.brand.save': 'ブランドを保存',
     'admin.brand.reset': 'デフォルトに戻す',
+    'admin.brand.config': '設定内容',
+
+    // Admin: Image Governance subtitle
+    'admin.image.subtitle': '画像データのライフサイクル、同意管理、二次利用管理',
+
+    // Chat & Communication
+    'chat.title': 'メッセージ',
+    'chat.placeholder': 'メッセージを入力…',
+    'chat.video_call': 'ビデオ通話を開始',
+    'chat.screen_share': '画面共有',
+
+    // Font Size
+    'fontsize.small': '小',
+    'fontsize.normal': '標準',
+    'fontsize.large': '大',
 }

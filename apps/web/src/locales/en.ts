@@ -192,6 +192,7 @@ export const en = {
 
     // Admin: Brand Settings
     'admin.brand.title': 'Brand Settings',
+    'admin.brand.subtitle': 'White-label configuration',
     'admin.brand.logo': 'Platform Logo',
     'admin.brand.upload': 'Upload Logo',
     'admin.brand.name': 'Platform Name',
@@ -199,6 +200,21 @@ export const en = {
     'admin.brand.preview': 'Preview',
     'admin.brand.save': 'Save Brand',
     'admin.brand.reset': 'Reset to Default',
+    'admin.brand.config': 'Configuration',
+
+    // Admin: Image Governance subtitle
+    'admin.image.subtitle': 'Image data lifecycle, consent management, and secondary use controls',
+
+    // Chat & Communication
+    'chat.title': 'Messages',
+    'chat.placeholder': 'Write a message…',
+    'chat.video_call': 'Start Video Call',
+    'chat.screen_share': 'Share Screen',
+
+    // Font Size
+    'fontsize.small': 'Small',
+    'fontsize.normal': 'Normal',
+    'fontsize.large': 'Large',
 } as const
 
 export type TranslationKey = keyof typeof en

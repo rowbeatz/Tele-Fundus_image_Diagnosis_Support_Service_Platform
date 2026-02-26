@@ -1,17 +1,23 @@
 import { useAuth } from '../../contexts/AuthContext'
 import { useBrand } from '../../contexts/BrandContext'
 import { useTranslation, LanguageToggle } from '../../lib/i18n'
-import { Bell, LogOut, Menu } from 'lucide-react'
+import { useFontSize } from '../../contexts/FontSizeContext'
+import { Bell, LogOut, Menu, MessageSquare, Type } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+
+const fontSizeTooltips = { small: 'Small text', normal: 'Normal text', large: 'Large text' } as const
 
 interface HeaderProps {
     onMenuToggle: () => void
+    onChatToggle: () => void
+    chatOpen: boolean
 }
 
-export function Header({ onMenuToggle }: HeaderProps) {
+export function Header({ onMenuToggle, onChatToggle, chatOpen }: HeaderProps) {
     const { user, logout } = useAuth()
     const { brand } = useBrand()
     const { t } = useTranslation()
+    const { fontSize, cycleFontSize } = useFontSize()
     const navigate = useNavigate()
 
     const handleLogout = async () => {
@@ -20,10 +26,10 @@ export function Header({ onMenuToggle }: HeaderProps) {
     }
 
     const roleBadgeColor: Record<string, string> = {
-        admin: '#ef4444',
-        operator: '#f59e0b',
-        physician: '#3b82f6',
-        client: '#10b981',
+        admin: '#dc2626',
+        operator: '#d97706',
+        physician: '#2563eb',
+        client: '#059669',
     }
 
     const roleLabels: Record<string, string> = {
@@ -36,7 +42,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
     return (
         <header className="header">
             <div className="header-left">
-                {/* Hamburger — visible on tablet/mobile only */}
                 <button className="hamburger-btn" onClick={onMenuToggle}>
                     <Menu style={{ width: 22, height: 22 }} />
                 </button>
@@ -50,7 +55,27 @@ export function Header({ onMenuToggle }: HeaderProps) {
             </div>
 
             <div className="header-actions">
+                {/* Font Size Toggle */}
+                <button
+                    className="header-icon-btn font-size-btn"
+                    onClick={cycleFontSize}
+                    title={fontSizeTooltips[fontSize]}
+                    style={{ position: 'relative' }}
+                >
+                    <Type style={{ width: 18, height: 18 }} />
+                    <span className="font-size-indicator">{fontSize[0].toUpperCase()}</span>
+                </button>
+
                 <LanguageToggle />
+
+                {/* Chat Toggle */}
+                <button
+                    className={`header-icon-btn ${chatOpen ? 'active' : ''}`}
+                    onClick={onChatToggle}
+                    title={t('chat.title' as any)}
+                >
+                    <MessageSquare style={{ width: 20, height: 20 }} />
+                </button>
 
                 <button className="header-icon-btn" style={{ position: 'relative' }}>
                     <Bell style={{ width: 20, height: 20 }} />
