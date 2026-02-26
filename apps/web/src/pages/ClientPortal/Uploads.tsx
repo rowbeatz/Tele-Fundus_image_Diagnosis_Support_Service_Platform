@@ -1,11 +1,7 @@
 import React, { useState, useRef } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card'
-import { Button } from '../../components/ui/Button'
-import { Input } from '../../components/ui/Input'
-import { Label } from '../../components/ui/Label'
+import { useTranslation } from '../../lib/i18n'
 import { UploadCloud, FileImage, X } from 'lucide-react'
 
-// Simple helper to hash file using Web Crypto API
 async function hashFile(file: File): Promise<string> {
     const buffer = await file.arrayBuffer()
     const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
@@ -21,8 +17,8 @@ export default function Uploads() {
     const [files, setFiles] = useState<File[]>([])
     const [isUploading, setIsUploading] = useState(false)
     const [progress, setProgress] = useState(0)
-
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const { t } = useTranslation()
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault()
@@ -39,163 +35,105 @@ export default function Uploads() {
         }
     }
 
-    const removeFile = (index: number) => {
-        setFiles(prev => prev.filter((_, i) => i !== index))
-    }
+    const removeFile = (index: number) => setFiles(prev => prev.filter((_, i) => i !== index))
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (files.length === 0) {
-            alert('Please select at least one fundus image.')
-            return
-        }
-
-        setIsUploading(true)
-        setProgress(10)
-
+        if (files.length === 0) { alert('Please select at least one fundus image.'); return }
+        setIsUploading(true); setProgress(10)
         try {
-            // 1. Create Patient & Screening (Assuming a simplified /api/ops-screenings endpoint or similar, 
-            // or we can just mock a submission for the sake of MVP frontend demonstration)
-            // Since ops-screenings POST requires an existing clientOrderId, we might need a dedicated upload API or mock it.
-
-            const payload = {
-                externalExamineeId: externalId,
-                displayName: examineeName,
-                bloodPressureSystolic: parseInt(systolic),
-                bloodPressureDiastolic: parseInt(diastolic)
-            }
-            console.log('Registering examinee & screening', payload)
-            setProgress(30)
-
-            // Mock delay representing DB creation
-            await new Promise(r => setTimeout(r, 1000))
-
-            // 2. Hash & Get Presigned URLs
-            setProgress(50)
-            const imagePayloads = await Promise.all(
-                files.map(async (file) => ({
-                    originalFilename: file.name,
-                    eyeSide: file.name.toLowerCase().includes('left') ? 'left' : 'right',
-                    mimeType: file.type,
-                    fileSizeBytes: file.size,
-                    sha256Hash: await hashFile(file)
-                }))
-            )
-
-            console.log('Requesting signed URLs for', imagePayloads)
-            await new Promise(r => setTimeout(r, 1000))
-            setProgress(75)
-
-            // 3. Upload to S3 (Mocking physical upload time)
-            await new Promise(r => setTimeout(r, 1500))
-
-            setProgress(100)
-            alert('Upload completed successfully!')
-
-            // Reset
-            setExamineeName('')
-            setExternalId('')
-            setSystolic('')
-            setDiastolic('')
-            setFiles([])
-        } catch (err: any) {
-            console.error(err)
-            alert('Upload failed: ' + err.message)
-        } finally {
-            setIsUploading(false)
-            setProgress(0)
-        }
+            await new Promise(r => setTimeout(r, 1000)); setProgress(50)
+            await Promise.all(files.map(async (file) => ({
+                originalFilename: file.name,
+                eyeSide: file.name.toLowerCase().includes('left') ? 'left' : 'right',
+                sha256Hash: await hashFile(file)
+            })))
+            setProgress(75); await new Promise(r => setTimeout(r, 1500)); setProgress(100)
+            alert('Upload completed!')
+            setExamineeName(''); setExternalId(''); setSystolic(''); setDiastolic(''); setFiles([])
+        } catch (err: any) { alert('Upload failed: ' + err.message) }
+        finally { setIsUploading(false); setProgress(0) }
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">New Screening Registration</h1>
-            </div>
+        <div style={{ maxWidth: 900, margin: '0 auto' }} className="space-y-6">
+            <h1>{t('uploads.title')}</h1>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Examinee Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+            <form onSubmit={handleSubmit}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    {/* Examinee */}
+                    <div className="panel space-y-4">
+                        <h3>{t('uploads.examinee')}</h3>
+                        <div>
+                            <label className="label">{t('uploads.id')}</label>
+                            <input className="input-field" value={externalId} onChange={e => setExternalId(e.target.value)} required placeholder="EX-12345" />
+                        </div>
+                        <div>
+                            <label className="label">{t('uploads.name')}</label>
+                            <input className="input-field" value={examineeName} onChange={e => setExamineeName(e.target.value)} required placeholder="田中 太郎" />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                             <div>
-                                <Label>Examinee ID / Chart No.</Label>
-                                <Input value={externalId} onChange={e => setExternalId(e.target.value)} required placeholder="e.g. EX-12345" />
+                                <label className="label">{t('uploads.systolic')}</label>
+                                <input className="input-field" type="number" value={systolic} onChange={e => setSystolic(e.target.value)} placeholder="120" />
                             </div>
                             <div>
-                                <Label>Full Name</Label>
-                                <Input value={examineeName} onChange={e => setExamineeName(e.target.value)} required placeholder="John Doe" />
+                                <label className="label">{t('uploads.diastolic')}</label>
+                                <input className="input-field" type="number" value={diastolic} onChange={e => setDiastolic(e.target.value)} placeholder="80" />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Systolic BP</Label>
-                                    <Input type="number" value={systolic} onChange={e => setSystolic(e.target.value)} placeholder="120" />
-                                </div>
-                                <div>
-                                    <Label>Diastolic BP</Label>
-                                    <Input type="number" value={diastolic} onChange={e => setDiastolic(e.target.value)} placeholder="80" />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Fundus Images</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div
-                                className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center transition-colors cursor-pointer ${files.length > 0 ? 'border-primary/50 bg-primary/5' : 'border-gray-300 hover:border-primary/50'}`}
-                                onDragOver={(e) => e.preventDefault()}
-                                onDrop={handleDrop}
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                <UploadCloud className="w-10 h-10 text-gray-400 mb-2" />
-                                <p className="text-sm text-gray-600 text-center">
-                                    <span className="font-semibold text-primary">Click to upload</span> or drag and drop
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">JPEG, PNG up to 10MB each</p>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    multiple
-                                    accept="image/jpeg,image/png"
-                                />
-                            </div>
+                    {/* Images */}
+                    <div className="panel space-y-4">
+                        <h3>{t('uploads.images')}</h3>
+                        <div
+                            className={`drop-zone ${files.length > 0 ? 'active' : ''}`}
+                            onDragOver={e => e.preventDefault()} onDrop={handleDrop}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <UploadCloud style={{ width: 40, height: 40, color: 'var(--text-muted)', marginBottom: 8 }} />
+                            <p style={{ fontSize: '0.9rem' }}>
+                                <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{t('uploads.drop')}</span> {t('uploads.drop_hint')}
+                            </p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{t('uploads.format')}</p>
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} multiple accept="image/jpeg,image/png" />
+                        </div>
 
-                            {files.length > 0 && (
-                                <div className="space-y-2 mt-4 max-h-48 overflow-y-auto">
-                                    {files.map((f, i) => (
-                                        <div key={i} className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-md shadow-sm">
-                                            <div className="flex items-center gap-2 overflow-hidden">
-                                                <FileImage className="w-5 h-5 text-blue-500 shrink-0" />
-                                                <span className="text-sm truncate font-medium text-gray-700">{f.name}</span>
-                                                <span className="text-xs text-gray-400">({(f.size / 1024 / 1024).toFixed(2)} MB)</span>
-                                            </div>
-                                            <button type="button" onClick={() => removeFile(i)} className="p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100">
-                                                <X className="w-4 h-4" />
-                                            </button>
+                        {files.length > 0 && (
+                            <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {files.map((f, i) => (
+                                    <div key={i} style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                        padding: '8px 12px', background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+                                            <FileImage style={{ width: 18, height: 18, color: 'var(--info)', flexShrink: 0 }} />
+                                            <span style={{ fontSize: '0.85rem', fontWeight: 500 }} className="truncate">{f.name}</span>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({(f.size / 1024 / 1024).toFixed(2)} MB)</span>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                        <button type="button" onClick={() => removeFile(i)} style={{
+                                            background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+                                            color: 'var(--text-muted)', borderRadius: 4,
+                                        }}>
+                                            <X style={{ width: 16, height: 16 }} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-gray-200">
-                    <Button type="submit" size="lg" disabled={isUploading || files.length === 0}>
-                        {isUploading ? `Uploading... ${progress}%` : 'Submit Screening'}
-                    </Button>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                    <button className="btn btn-primary" type="submit" style={{ minWidth: 180, height: 44 }} disabled={isUploading || files.length === 0}>
+                        {isUploading ? `${t('uploads.uploading')} ${progress}%` : t('uploads.submit')}
+                    </button>
                 </div>
 
                 {isUploading && (
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                        <div className="bg-primary h-2.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                    <div className="progress-bar" style={{ marginTop: 12 }}>
+                        <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
                     </div>
                 )}
             </form>

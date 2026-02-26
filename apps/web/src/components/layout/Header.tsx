@@ -1,37 +1,95 @@
 import { useAuth } from '../../contexts/AuthContext'
+import { useTranslation, LanguageToggle } from '../../lib/i18n'
 import { Bell, LogOut, User } from 'lucide-react'
 
 export function Header() {
     const { user, logout } = useAuth()
+    const { t } = useTranslation()
+
+    const initials = (user?.fullName || 'U')
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
 
     return (
-        <header className="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200">
-            <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-gray-800">
-                    Tele-Fundus
-                    {user?.role && <span className="ml-2 text-sm px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">{user.role}</span>}
+        <header style={{
+            height: 'var(--header-height)',
+            background: 'var(--surface)',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 24px',
+            flexShrink: 0,
+        }}>
+            {/* Left – Title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>
+                    {t('app.name')}
                 </h2>
+                {user?.role && (
+                    <span className="badge badge-teal" style={{ textTransform: 'capitalize' }}>
+                        {user.role}
+                    </span>
+                )}
             </div>
 
-            <div className="flex items-center gap-4">
-                <button className="p-2 text-gray-500 rounded-full hover:bg-gray-100">
-                    <Bell className="w-5 h-5" />
+            {/* Right – Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <LanguageToggle />
+
+                <button style={{
+                    position: 'relative', width: 38, height: 38,
+                    borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                    background: 'transparent', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'background 0.15s ease',
+                }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                    <Bell style={{ width: 18, height: 18, color: 'var(--text-secondary)' }} />
+                    <span style={{
+                        position: 'absolute', top: -4, right: -4,
+                        width: 18, height: 18, borderRadius: '50%',
+                        background: 'var(--danger)', color: 'white',
+                        fontSize: '0.65rem', fontWeight: 700,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>3</span>
                 </button>
-                <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-                    <div className="flex items-center justify-center w-8 h-8 bg-primary text-white rounded-full">
-                        <User className="w-4 h-4" />
+
+                <div style={{
+                    height: 32, width: 1, background: 'var(--border)',
+                }} />
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div className="avatar avatar-teal">
+                        {initials || <User style={{ width: 16, height: 16 }} />}
                     </div>
-                    <div className="hidden md:block text-sm">
-                        <p className="font-medium text-gray-700">{user?.fullName || 'User'}</p>
+                    <div style={{ lineHeight: 1.3 }}>
+                        <div style={{ fontSize: '0.866rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                            {user?.fullName || 'User'}
+                        </div>
                     </div>
-                    <button
-                        onClick={logout}
-                        className="p-2 ml-2 text-gray-500 rounded-full hover:bg-red-50 hover:text-red-600 transition-colors"
-                        title="Sign out"
-                    >
-                        <LogOut className="w-5 h-5" />
-                    </button>
                 </div>
+
+                <button
+                    onClick={logout}
+                    title={t('auth.signout')}
+                    style={{
+                        width: 38, height: 38, borderRadius: 'var(--radius)',
+                        border: '1px solid var(--border)',
+                        background: 'transparent', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-light)'; e.currentTarget.style.borderColor = 'var(--danger)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)' }}
+                >
+                    <LogOut style={{ width: 18, height: 18, color: 'var(--text-secondary)' }} />
+                </button>
             </div>
         </header>
     )

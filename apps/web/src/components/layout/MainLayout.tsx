@@ -9,24 +9,36 @@ export function MainLayout() {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                minHeight: '100vh', background: 'var(--bg)', flexDirection: 'column', gap: 16,
+            }}>
+                <div style={{
+                    width: 40, height: 40,
+                    border: '3px solid var(--border)',
+                    borderTopColor: 'var(--primary)',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                }} />
+                <span style={{ fontSize: '0.866rem', color: 'var(--text-muted)' }}>Loading…</span>
             </div>
         )
     }
 
     if (!user) {
-        // Redirect to login but save the attempted url
         return <Navigate to="/login" state={{ from: location }} replace />
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50">
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg)' }}>
             <Sidebar />
-            <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, overflow: 'hidden' }}>
                 <Header />
-                <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
-                    <div className="mx-auto max-w-7xl">
+                <main style={{
+                    flex: 1, overflowY: 'auto', padding: '24px 28px',
+                    scrollBehavior: 'smooth',
+                }}>
+                    <div style={{ maxWidth: 1280, margin: '0 auto' }} className="animate-fade-in">
                         <Outlet />
                     </div>
                 </main>

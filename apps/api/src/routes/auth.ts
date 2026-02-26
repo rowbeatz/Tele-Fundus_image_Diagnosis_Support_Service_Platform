@@ -39,31 +39,29 @@ export function createAuthRouter(deps: { sessionStore: SessionStore; mailer: Mai
       return c.json({ code: 'INVALID_REQUEST' }, 400)
     }
 
-    // Mock verification against seeded admin
-    if (body.email === 'admin@telefundus.jp') {
-      const user = await userRepo.findByEmail(body.email)
-      if (user) {
-        const sessionId = crypto.randomUUID()
-        await deps.sessionStore.set(sessionId, {
-          userId: user.email,
-          role: user.role,
-          issuedAt: Date.now(),
-          expiresAt: Date.now() + 1000 * 60 * 60 * 8
-        })
+    // Demo: accept any seeded user from the database
+    const user = await userRepo.findByEmail(body.email)
+    if (user) {
+      const sessionId = crypto.randomUUID()
+      await deps.sessionStore.set(sessionId, {
+        userId: user.email,
+        role: user.role,
+        issuedAt: Date.now(),
+        expiresAt: Date.now() + 1000 * 60 * 60 * 8
+      })
 
-        c.header('set-cookie', `sid=${sessionId}; HttpOnly; Path=/; SameSite=Lax`)
-        return c.json({
-          success: true,
-          user: {
-            id: user.id,
-            fullName: user.fullName,
-            email: user.email,
-            role: user.role,
-            organizationId: user.organizationId,
-            physicianId: user.physicianId
-          }
-        })
-      }
+      c.header('set-cookie', `sid=${sessionId}; HttpOnly; Path=/; SameSite=Lax`)
+      return c.json({
+        success: true,
+        user: {
+          id: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          organizationId: user.organizationId,
+          physicianId: user.physicianId
+        }
+      })
     }
 
     return c.json({ code: 'INVALID_CREDENTIALS' }, 401)

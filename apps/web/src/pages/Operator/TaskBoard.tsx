@@ -1,106 +1,102 @@
 import React, { useState } from 'react'
-import { Card, CardContent } from '../../components/ui/Card'
-import { Button } from '../../components/ui/Button'
+import { useTranslation } from '../../lib/i18n'
 import { MoreHorizontal, CheckCircle2, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-// Mock data representing screenings and readings
 const initialTasks = [
-    { id: 'scr-1', patientName: 'John Doe', status: 'unassigned', priority: 'high', date: '2026-02-26 09:30' },
-    { id: 'scr-2', patientName: 'Jane Smith', status: 'reading', priority: 'normal', date: '2026-02-26 10:15', physicianName: 'Dr. Sarah Connor' },
-    { id: 'scr-3', patientName: 'Robert Johnson', status: 'qc_review', priority: 'high', date: '2026-02-26 08:45', physicianName: 'Dr. House' },
-    { id: 'scr-4', patientName: 'Emily Davis', status: 'unassigned', priority: 'normal', date: '2026-02-26 11:00' },
+    { id: 'scr-1', patientName: '田中 太郎', status: 'unassigned', priority: 'high', date: '2026-02-26 09:30' },
+    { id: 'scr-2', patientName: '鈴木 花子', status: 'reading', priority: 'normal', date: '2026-02-26 10:15', physicianName: 'Dr. 田中' },
+    { id: 'scr-3', patientName: '佐藤 健一', status: 'qc_review', priority: 'high', date: '2026-02-26 08:45', physicianName: 'Dr. 佐藤' },
+    { id: 'scr-4', patientName: '山田 美咲', status: 'unassigned', priority: 'normal', date: '2026-02-26 11:00' },
+    { id: 'scr-5', patientName: '高橋 翔太', status: 'reading', priority: 'high', date: '2026-02-26 07:30', physicianName: 'Dr. 田中' },
 ]
 
 export default function TaskBoard() {
     const [tasks, setTasks] = useState(initialTasks)
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     const columns = [
-        { id: 'unassigned', title: 'To Assign' },
-        { id: 'reading', title: 'In Reading' },
-        { id: 'qc_review', title: 'QC Review' },
+        { id: 'unassigned', titleKey: 'taskboard.col.unassigned' as const },
+        { id: 'reading', titleKey: 'taskboard.col.reading' as const },
+        { id: 'qc_review', titleKey: 'taskboard.col.qc_review' as const },
     ]
 
-    // Extremely simple mock drag and drop implementation since we don't have dnd-kit installed
     const handleDragStart = (e: React.DragEvent, taskId: string) => {
         e.dataTransfer.setData('taskId', taskId)
     }
-
     const handleDrop = (e: React.DragEvent, statusId: string) => {
         const taskId = e.dataTransfer.getData('taskId')
-        setTasks(prev => prev.map(t =>
-            t.id === taskId ? { ...t, status: statusId } : t
-        ))
+        setTasks(prev => prev.map(task => task.id === taskId ? { ...task, status: statusId } : task))
     }
-
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault()
-    }
+    const handleDragOver = (e: React.DragEvent) => e.preventDefault()
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">Operator Task Board</h1>
-                <Button>Auto-Assign Pending</Button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1>{t('taskboard.title')}</h1>
+                <button className="btn btn-primary">{t('taskboard.auto_assign')}</button>
             </div>
 
-            <div className="flex gap-6 h-[calc(100vh-140px)]">
+            <div style={{ display: 'flex', gap: 16, height: 'calc(100vh - 180px)' }}>
                 {columns.map(col => {
-                    const columnTasks = tasks.filter(t => t.status === col.id)
+                    const columnTasks = tasks.filter(task => task.status === col.id)
                     return (
-                        <div
-                            key={col.id}
-                            className="flex-1 bg-gray-100 rounded-lg p-4 flex flex-col"
+                        <div key={col.id} className="kanban-col" style={{ flex: 1 }}
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, col.id)}
                         >
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-semibold text-gray-700">{col.title}</h3>
-                                <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
-                                    {columnTasks.length}
-                                </span>
+                            <div className="kanban-col-header">
+                                <h4 style={{ margin: 0 }}>{t(col.titleKey)}</h4>
+                                <span className="badge badge-neutral">{columnTasks.length}</span>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
                                 {columnTasks.map(task => (
-                                    <Card
+                                    <div
                                         key={task.id}
-                                        className={`cursor-grab active:cursor-grabbing border-l-4 ${task.priority === 'high' ? 'border-l-red-500' : 'border-l-blue-500'}`}
+                                        className={`kanban-card ${task.priority === 'high' ? 'priority-high' : 'priority-normal'}`}
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, task.id)}
                                     >
-                                        <CardContent className="p-3">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="font-medium text-sm">{task.patientName}</span>
-                                                <button className="text-gray-400 hover:text-gray-600"><MoreHorizontal className="w-4 h-4" /></button>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                                            <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{task.patientName}</span>
+                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}>
+                                                <MoreHorizontal style={{ width: 16, height: 16 }} />
+                                            </button>
+                                        </div>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8 }}>
+                                            <Clock style={{ width: 12, height: 12 }} /> {task.date}
+                                        </div>
+
+                                        {task.physicianName && (
+                                            <span className="badge badge-info" style={{ marginBottom: 8 }}>{task.physicianName}</span>
+                                        )}
+
+                                        {col.id === 'unassigned' && (
+                                            <button className="btn btn-secondary" style={{ width: '100%', marginTop: 4, fontSize: '0.8rem', minHeight: 32 }}>
+                                                {t('taskboard.assign')}
+                                            </button>
+                                        )}
+                                        {col.id === 'qc_review' && (
+                                            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                                                <button className="btn btn-secondary" style={{ flex: 1, fontSize: '0.75rem', minHeight: 30 }}
+                                                    onClick={() => navigate(`/viewer/${task.id}`)}>{t('taskboard.review')}</button>
+                                                <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.75rem', minHeight: 30, background: 'var(--success)', borderColor: 'var(--success)' }}>
+                                                    <CheckCircle2 style={{ width: 12, height: 12 }} /> {t('taskboard.approve')}
+                                                </button>
                                             </div>
-
-                                            <div className="text-xs text-gray-500 flex items-center gap-1 mb-2">
-                                                <Clock className="w-3 h-3" /> {task.date}
-                                            </div>
-
-                                            {task.physicianName && (
-                                                <div className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded w-fit mb-2">
-                                                    {task.physicianName}
-                                                </div>
-                                            )}
-
-                                            {col.id === 'unassigned' && (
-                                                <Button size="sm" variant="outline" className="w-full mt-2 text-xs">Assign</Button>
-                                            )}
-                                            {col.id === 'qc_review' && (
-                                                <div className="flex gap-2 mt-2">
-                                                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => navigate(`/viewer/${task.id}`)}>Review</Button>
-                                                    <Button size="sm" className="flex-1 bg-green-600 text-xs text-white"><CheckCircle2 className="w-3 h-3 mr-1" /> Approve</Button>
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
+                                        )}
+                                    </div>
                                 ))}
                                 {columnTasks.length === 0 && (
-                                    <div className="text-center text-sm text-gray-400 min-h-[100px] flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
-                                        Drop items here
+                                    <div style={{
+                                        textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)',
+                                        minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        border: '2px dashed var(--border)', borderRadius: 'var(--radius)',
+                                    }}>
+                                        {t('taskboard.drop_here')}
                                     </div>
                                 )}
                             </div>
