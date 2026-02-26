@@ -1,10 +1,14 @@
 import { useAuth } from '../../contexts/AuthContext'
 import { useBrand } from '../../contexts/BrandContext'
 import { useTranslation, LanguageToggle } from '../../lib/i18n'
-import { Bell, LogOut } from 'lucide-react'
+import { Bell, LogOut, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-export function Header() {
+interface HeaderProps {
+    onMenuToggle: () => void
+}
+
+export function Header({ onMenuToggle }: HeaderProps) {
     const { user, logout } = useAuth()
     const { brand } = useBrand()
     const { t } = useTranslation()
@@ -32,6 +36,11 @@ export function Header() {
     return (
         <header className="header">
             <div className="header-left">
+                {/* Hamburger — visible on tablet/mobile only */}
+                <button className="hamburger-btn" onClick={onMenuToggle}>
+                    <Menu style={{ width: 22, height: 22 }} />
+                </button>
+
                 <span className="header-brand">{brand.platformName}</span>
                 {user?.role && (
                     <span className="header-role-badge" style={{ background: roleBadgeColor[user.role] || '#6b7280' }}>
@@ -50,7 +59,7 @@ export function Header() {
 
                 <div className="header-user">
                     <div className="avatar" style={{
-                        width: 32, height: 32, borderRadius: '50%',
+                        width: 34, height: 34, borderRadius: '50%',
                         background: 'var(--primary)', color: 'white',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '0.75rem', fontWeight: 700,

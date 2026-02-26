@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react'
 import { Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { Header } from './Header'
@@ -6,6 +7,10 @@ import { Sidebar } from './Sidebar'
 export function MainLayout() {
     const { user, isLoading } = useAuth()
     const location = useLocation()
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+
+    const toggleSidebar = useCallback(() => setSidebarOpen(p => !p), [])
+    const closeSidebar = useCallback(() => setSidebarOpen(false), [])
 
     if (isLoading) {
         return (
@@ -30,10 +35,15 @@ export function MainLayout() {
     }
 
     return (
-        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg)' }}>
-            <Sidebar />
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                <Header />
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+            {/* Mobile overlay */}
+            <div
+                className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+                onClick={closeSidebar}
+            />
+            <Sidebar open={sidebarOpen} onClose={closeSidebar} />
+            <div className="layout-content">
+                <Header onMenuToggle={toggleSidebar} />
                 <main style={{
                     flex: 1, overflowY: 'auto', padding: '24px 28px',
                     scrollBehavior: 'smooth',

@@ -5,7 +5,7 @@ import { useTranslation, LanguageToggle } from '../../lib/i18n'
 import {
     LayoutDashboard, Users, Upload, Stethoscope, ClipboardList, ShieldCheck,
     Building2, CreditCard, Settings, ChevronDown, ChevronRight,
-    UserCog, Lock, ImageIcon, Palette,
+    UserCog, Lock, ImageIcon, Palette, X,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -28,7 +28,12 @@ const adminSubNav = [
     { key: 'nav.brand', icon: Palette, path: '/admin/brand' },
 ] as const
 
-export function Sidebar() {
+interface SidebarProps {
+    open: boolean
+    onClose: () => void
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
     const { user } = useAuth()
     const { brand } = useBrand()
     const { t } = useTranslation()
@@ -36,10 +41,20 @@ export function Sidebar() {
     const [adminOpen, setAdminOpen] = useState(() => location.pathname.startsWith('/admin/'))
     const role = user?.role || 'client'
 
-    const filteredNav = allNav.filter(n => n.roles.includes(role as any))
+    const filteredNav = allNav.filter(n => (n.roles as readonly string[]).includes(role))
+
+    const handleNavClick = () => {
+        // Close sidebar on mobile after navigation
+        onClose()
+    }
 
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${open ? 'open' : ''}`}>
+            {/* Close button (mobile only) */}
+            <button className="sidebar-close-btn" onClick={onClose}>
+                <X style={{ width: 20, height: 20 }} />
+            </button>
+
             {/* Brand */}
             <div className="sidebar-brand">
                 <img
@@ -58,6 +73,7 @@ export function Sidebar() {
                         <NavLink
                             key={item.path}
                             to={item.path}
+                            onClick={handleNavClick}
                             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
                         >
                             <Icon className="sidebar-icon" />
@@ -86,6 +102,7 @@ export function Sidebar() {
                                         <NavLink
                                             key={item.path}
                                             to={item.path}
+                                            onClick={handleNavClick}
                                             className={({ isActive }) => `sidebar-link sidebar-sub-link ${isActive ? 'active' : ''}`}
                                         >
                                             <Icon className="sidebar-icon" />
