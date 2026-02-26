@@ -26,7 +26,7 @@ export type CreateExamineeInput = {
 }
 
 export class ExamineeRepository {
-  constructor(private readonly db: DbLike) {}
+  constructor(private readonly db: DbLike) { }
 
   async create(input: CreateExamineeInput): Promise<ExamineeRecord> {
     const result = await this.db.query<ExamineeRecord>(
@@ -80,7 +80,7 @@ export class ExamineeRepository {
         created_at as "createdAt",
         updated_at as "updatedAt"
       from examinees
-      where organization_id = $1 and external_examinee_id = $2
+      where organization_id = $1 and external_examinee_id = $2 and deleted_at is null
       `,
       [organizationId, externalId]
     )
@@ -103,12 +103,19 @@ export class ExamineeRepository {
         created_at as "createdAt",
         updated_at as "updatedAt"
       from examinees
-      where organization_id = $1
+      where organization_id = $1 and deleted_at is null
       order by created_at desc
       limit $2 offset $3
       `,
       [organizationId, limit, offset]
     )
     return result.rows
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await this.db.query(
+      `update examinees set deleted_at = now() where id = $1`,
+      [id]
+    )
   }
 }

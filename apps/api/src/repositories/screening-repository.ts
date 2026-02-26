@@ -38,7 +38,7 @@ export type CreateScreeningInput = {
 }
 
 export class ScreeningRepository {
-  constructor(private readonly db: DbLike) {}
+  constructor(private readonly db: DbLike) { }
 
   async create(input: CreateScreeningInput): Promise<ScreeningRecord> {
     const result = await this.db.query<ScreeningRecord>(
@@ -116,7 +116,7 @@ export class ScreeningRepository {
         created_at as "createdAt",
         updated_at as "updatedAt"
       from screenings
-      where id = $1
+      where id = $1 and deleted_at is null
       `,
       [id]
     )
@@ -127,14 +127,14 @@ export class ScreeningRepository {
     const setClauses: string[] = []
     const values: any[] = [id]
     let paramIndex = 2
-    
+
     if (updates.status !== undefined) {
       setClauses.push(`status = $${paramIndex++}`)
       values.push(updates.status)
     }
-    
+
     // Add other fields broadly if needed over time
-    
+
     if (setClauses.length === 0) {
       throw new Error('No updates provided')
     }
@@ -143,7 +143,7 @@ export class ScreeningRepository {
       `
       update screenings
       set ${setClauses.join(', ')}, updated_at = now()
-      where id = $1
+      where id = $1 and deleted_at is null
       returning
         id,
         client_order_id as "clientOrderId",
@@ -167,5 +167,12 @@ export class ScreeningRepository {
       values
     )
     return result.rows[0]
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await this.db.query(
+      `update screenings set deleted_at = now() where id = $1`,
+      [id]
+    )
   }
 }

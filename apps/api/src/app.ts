@@ -9,14 +9,17 @@ import { imageRoutes } from './routes/images'
 import { opsScreeningsRoutes } from './routes/ops-screenings'
 import { opsReadingsRoutes } from './routes/ops-readings'
 import { accountingRoutes } from './routes/accounting'
+import { fhirRoutes } from './routes/fhir'
 import { DbSessionStore } from './infra/auth/session-store'
 import { ConsoleMailer } from './infra/mail/mailer'
 import { InMemoryJobQueue } from './infra/queue/job-queue'
 import { pool } from './lib/db'
 import { auditLogger } from './middleware/audit-logger'
+import { securityHeadersMiddleware } from './middleware/security'
 
 const app = new Hono()
 
+app.use('*', securityHeadersMiddleware)
 app.use('*', auditLogger)
 
 const sessionStore = new DbSessionStore(pool)
@@ -33,6 +36,7 @@ app.route('/images', imageRoutes)
 app.route('/ops-screenings', opsScreeningsRoutes)
 app.route('/ops-readings', opsReadingsRoutes)
 app.route('/accounting', accountingRoutes)
+app.route('/fhir', fhirRoutes)
 
 
 const bucketName = process.env.AWS_S3_BUCKET || 'tele-fundus-portal-assets'
