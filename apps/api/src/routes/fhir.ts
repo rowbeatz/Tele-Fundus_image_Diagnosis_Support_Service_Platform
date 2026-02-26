@@ -1,3 +1,4 @@
+import { Hono } from 'hono'
 // @ts-ignore
 import { requireAuth } from '../middleware/auth'
 import { pool } from '../lib/db'

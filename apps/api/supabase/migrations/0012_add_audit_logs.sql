@@ -21,8 +21,7 @@ ALTER TABLE examinees ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZO
 ALTER TABLE screenings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE NULL;
 
 -- Update indexes for Soft Deletes
-DROP INDEX IF EXISTS idx_examinees_client_id;
-CREATE INDEX idx_examinees_client_id ON examinees(client_organization_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_examinees_organization_id ON examinees(organization_id) WHERE deleted_at IS NULL;
 
 DROP INDEX IF EXISTS idx_screenings_examinee_id;
 CREATE INDEX idx_screenings_examinee_id ON screenings(examinee_id) WHERE deleted_at IS NULL;

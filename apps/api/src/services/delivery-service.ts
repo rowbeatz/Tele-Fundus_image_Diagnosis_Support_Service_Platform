@@ -1,7 +1,7 @@
 import { PdfService } from '../lib/pdf'
 
 export class DeliveryService {
-  constructor(private readonly pdfService = new PdfService()) {}
+  constructor(private readonly pdfService = new PdfService()) { }
 
   async generateDeliveryPdf(input: {
     screeningId: string
@@ -14,7 +14,7 @@ export class DeliveryService {
     const pdfBuffer = await this.pdfService.renderDeliveryPdf(input)
 
     return {
-      filename: \`reading-result-\${input.screeningId}.pdf\`,
+      filename: `reading-result-${input.screeningId}.pdf`,
       contentType: 'application/pdf',
       sizeBytes: pdfBuffer.byteLength,
       body: pdfBuffer,

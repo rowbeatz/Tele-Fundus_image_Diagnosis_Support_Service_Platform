@@ -21,7 +21,7 @@ deliveryRoutes.get('/:screeningId/pdf', async (c) => {
   })
 
   c.header('Content-Type', pdf.contentType)
-  c.header('Content-Disposition', \`attachment; filename="\${pdf.filename}"\`)
+  c.header('Content-Disposition', `attachment; filename="${pdf.filename}"`)
 
-  return c.body(pdf.body)
+  return c.body(pdf.body as any)
 })

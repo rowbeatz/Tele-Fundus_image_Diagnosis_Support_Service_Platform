@@ -22,7 +22,7 @@ export class S3CompatibleStorageService implements ObjectStorage {
     originalFilename: string
     mimeType: string
   }): Promise<SignedUploadResult> {
-    const objectKey = \`screenings/\${input.screeningId}/\${crypto.randomUUID()}-\${input.originalFilename}\`
+    const objectKey = `screenings/${input.screeningId}/${crypto.randomUUID()}-${input.originalFilename}`
 
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
@@ -49,7 +49,7 @@ export class S3CompatibleStorageService implements ObjectStorage {
       Bucket: this.bucketName,
       Key: objectKey,
     })
-    
+
     // Optionally return public URL if bucket is public,
     // here we return a signed url for reading.
     return getSignedUrl(this.client, command, { expiresIn: 3600 })

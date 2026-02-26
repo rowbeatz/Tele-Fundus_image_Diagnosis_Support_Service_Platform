@@ -11,24 +11,71 @@ export function createAuthRouter(deps: { sessionStore: SessionStore; mailer: Mai
   const userRepo = new UserRepository(pool)
   const passwordResetRepo = new PasswordResetRepository(pool)
 
+  auth.get('/me', async (c) => {
+    const sessionId = c.req.header('cookie')?.split(';').find(s => s.trim().startsWith('sid='))?.split('=')[1]
+    if (!sessionId) return c.json({ user: null })
+
+    const session = await deps.sessionStore.get(sessionId)
+    if (!session) return c.json({ user: null })
+
+    const user = await userRepo.findByEmail(session.userId) // In this mock session.userId is email
+    if (!user) return c.json({ user: null })
+
+    return c.json({
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        organizationId: user.organizationId,
+        physicianId: user.physicianId
+      }
+    })
+  })
+
   auth.post('/login', rateLimit({ keyPrefix: 'login', windowMs: 60_000, maxRequests: 10 }), async (c) => {
-    const body = await c.req.json<{ userId: string; password: string }>()
-    if (!body.userId || !body.password) {
+    const body = await c.req.json<{ email: string; password: string }>()
+    if (!body.email || !body.password) {
       return c.json({ code: 'INVALID_REQUEST' }, 400)
     }
 
-    // MVP skeleton: authentication validation relies on stored procedures or simpler verify logic
-    // We mock login verification for now
-    const sessionId = crypto.randomUUID()
-    await deps.sessionStore.set(sessionId, {
-      userId: body.userId,
-      role: 'operator',
-      issuedAt: Date.now(),
-      expiresAt: Date.now() + 1000 * 60 * 60 * 8
-    })
+    // Mock verification against seeded admin
+    if (body.email === 'admin@telefundus.jp') {
+      const user = await userRepo.findByEmail(body.email)
+      if (user) {
+        const sessionId = crypto.randomUUID()
+        await deps.sessionStore.set(sessionId, {
+          userId: user.email,
+          role: user.role,
+          issuedAt: Date.now(),
+          expiresAt: Date.now() + 1000 * 60 * 60 * 8
+        })
 
-    c.header('set-cookie', \`sid=\${sessionId}; HttpOnly; Path=/; SameSite=Lax\`)
-    return c.json({ sessionId })
+        c.header('set-cookie', `sid=${sessionId}; HttpOnly; Path=/; SameSite=Lax`)
+        return c.json({
+          success: true,
+          user: {
+            id: user.id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            organizationId: user.organizationId,
+            physicianId: user.physicianId
+          }
+        })
+      }
+    }
+
+    return c.json({ code: 'INVALID_CREDENTIALS' }, 401)
+  })
+
+  auth.post('/logout', async (c) => {
+    const sessionId = c.req.header('cookie')?.split(';').find(s => s.trim().startsWith('sid='))?.split('=')[1]
+    if (sessionId) {
+      await deps.sessionStore.delete(sessionId)
+    }
+    c.header('set-cookie', 'sid=; HttpOnly; Path=/; Max-Age=0')
+    return c.json({ success: true })
   })
 
   auth.post('/password-reset/request', async (c) => {
@@ -41,7 +88,7 @@ export function createAuthRouter(deps: { sessionStore: SessionStore; mailer: Mai
       await deps.mailer.send({
         to: body.email,
         subject: 'Password reset request',
-        text: \`Reset token: \${rawToken}\`
+        text: `Reset token: ${rawToken}`
       })
     }
 
@@ -51,7 +98,7 @@ export function createAuthRouter(deps: { sessionStore: SessionStore; mailer: Mai
   auth.post('/password-reset/confirm', async (c) => {
     const body = await c.req.json<{ token: string; newPassword: string }>()
     if (!body.token || !body.newPassword) return c.json({ code: 'INVALID_REQUEST' }, 400)
-    
+
     const userId = await passwordResetRepo.verifyAndUseToken(body.token)
     if (!userId) {
       return c.json({ code: 'INVALID_TOKEN' }, 400)

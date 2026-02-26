@@ -13,6 +13,7 @@ import {
 
 export function Sidebar() {
     const { user } = useAuth()
+    const Shield = CheckSquare // temporary fallback
 
     const getLinks = () => {
         const role = user?.role
@@ -44,9 +45,6 @@ export function Sidebar() {
     }
 
     const links = getLinks()
-
-    // To solve Shield icon import
-    const Shield = CheckSquare // temporary fallback for above until imported
 
     return (
         <aside className="w-64 bg-gray-900 text-white flex flex-col h-full border-r border-gray-800">

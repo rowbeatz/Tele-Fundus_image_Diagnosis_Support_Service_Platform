@@ -19,7 +19,7 @@ function escapeHtml(value: string) {
 }
 
 export function renderDeliveryHtml(input: DeliveryTemplateInput) {
-  return \`
+  return `
 <!doctype html>
 <html lang="ja">
 <head>
@@ -36,22 +36,22 @@ export function renderDeliveryHtml(input: DeliveryTemplateInput) {
 <body>
   <h1>眼底画像読影結果</h1>
   <table>
-    <tr><th>案件ID</th><td>\${escapeHtml(input.screeningId)}</td></tr>
-    <tr><th>依頼元</th><td>\${escapeHtml(input.clientName)}</td></tr>
-    <tr><th>受診者</th><td>\${escapeHtml(input.examineeName)}</td></tr>
-    <tr><th>判定</th><td>\${escapeHtml(input.judgmentCode)}</td></tr>
+    <tr><th>案件ID</th><td>${escapeHtml(input.screeningId)}</td></tr>
+    <tr><th>依頼元</th><td>${escapeHtml(input.clientName)}</td></tr>
+    <tr><th>受診者</th><td>${escapeHtml(input.examineeName)}</td></tr>
+    <tr><th>判定</th><td>${escapeHtml(input.judgmentCode)}</td></tr>
   </table>
   <div class="section">
     <strong>所見</strong>
-    <div>\${escapeHtml(input.findingText).replaceAll('\\n', '<br />')}</div>
+    <div>${escapeHtml(input.findingText).replaceAll('\n', '<br />')}</div>
   </div>
   <div class="section">
     <strong>コメント</strong>
-    <div>\${escapeHtml(input.physicianComment ?? '').replaceAll('\\n', '<br />')}</div>
+    <div>${escapeHtml(input.physicianComment ?? '').replaceAll('\n', '<br />')}</div>
   </div>
 </body>
 </html>
-\`
+`
 }
 
 export class PdfService {

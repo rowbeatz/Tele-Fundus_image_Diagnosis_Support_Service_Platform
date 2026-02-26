@@ -11,6 +11,10 @@ export async function query<T = unknown>(sql: string, params?: unknown[]) {
   return pool.query<T>(sql, params)
 }
 
+export function getDb(): DbLike {
+  return pool
+}
+
 export interface DbLike {
   query<T = unknown>(sql: string, params?: unknown[]): Promise<{ rows: T[] }>
 }
