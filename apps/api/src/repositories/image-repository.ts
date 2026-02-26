@@ -14,14 +14,15 @@ export type ImageRecord = {
   sha256Hash?: string | null
   isPrimary: boolean
   sortOrder: number
+  annotationsJson?: string | null
   createdBy: string
   createdAt: string
 }
 
-export type CreateImageInput = Omit<ImageRecord, 'id' | 'createdAt'>
+export type CreateImageInput = Omit<ImageRecord, 'id' | 'createdAt' | 'annotationsJson'>
 
 export class ImageRepository {
-  constructor(private readonly db: DbLike) {}
+  constructor(private readonly db: DbLike) { }
 
   async findByScreeningId(screeningId: string): Promise<ImageRecord[]> {
     const result = await this.db.query<ImageRecord>(
@@ -40,6 +41,7 @@ export class ImageRepository {
         sha256_hash as "sha256Hash",
         is_primary as "isPrimary",
         sort_order as "sortOrder",
+        annotations_json::text as "annotationsJson",
         created_by as "createdBy",
         created_at as "createdAt"
       from images
@@ -52,10 +54,56 @@ export class ImageRepository {
     return result.rows
   }
 
+  async findById(id: string): Promise<ImageRecord | null> {
+    const result = await this.db.query<ImageRecord>(
+      `
+      select
+        id,
+        screening_id as "screeningId",
+        eye_side as "eyeSide",
+        image_type as "imageType",
+        original_filename as "originalFilename",
+        storage_key as "storageKey",
+        mime_type as "mimeType",
+        file_size_bytes as "fileSizeBytes",
+        width_px as "widthPx",
+        height_px as "heightPx",
+        sha256_hash as "sha256Hash",
+        is_primary as "isPrimary",
+        sort_order as "sortOrder",
+        annotations_json::text as "annotationsJson",
+        created_by as "createdBy",
+        created_at as "createdAt"
+      from images
+      where id = $1
+      limit 1
+      `,
+      [id]
+    )
+    return result.rows[0] ?? null
+  }
+
   async findByHash(sha256Hash: string): Promise<ImageRecord | null> {
     const result = await this.db.query<ImageRecord>(
       `
-      select * from images where sha256_hash = $1 limit 1
+      select
+        id,
+        screening_id as "screeningId",
+        eye_side as "eyeSide",
+        image_type as "imageType",
+        original_filename as "originalFilename",
+        storage_key as "storageKey",
+        mime_type as "mimeType",
+        file_size_bytes as "fileSizeBytes",
+        width_px as "widthPx",
+        height_px as "heightPx",
+        sha256_hash as "sha256Hash",
+        is_primary as "isPrimary",
+        sort_order as "sortOrder",
+        annotations_json::text as "annotationsJson",
+        created_by as "createdBy",
+        created_at as "createdAt"
+      from images where sha256_hash = $1 limit 1
       `,
       [sha256Hash]
     )
@@ -87,6 +135,7 @@ export class ImageRepository {
         sha256_hash as "sha256Hash",
         is_primary as "isPrimary",
         sort_order as "sortOrder",
+        annotations_json::text as "annotationsJson",
         created_by as "createdBy",
         created_at as "createdAt"
       `,
@@ -109,4 +158,33 @@ export class ImageRepository {
 
     return result.rows[0]
   }
+  async updateAnnotations(id: string, annotationsJson: string | null): Promise<ImageRecord> {
+    const result = await this.db.query<ImageRecord>(
+      `
+      update images
+      set annotations_json = $2::jsonb, updated_at = now()
+      where id = $1
+      returning
+        id,
+        screening_id as "screeningId",
+        eye_side as "eyeSide",
+        image_type as "imageType",
+        original_filename as "originalFilename",
+        storage_key as "storageKey",
+        mime_type as "mimeType",
+        file_size_bytes as "fileSizeBytes",
+        width_px as "widthPx",
+        height_px as "heightPx",
+        sha256_hash as "sha256Hash",
+        is_primary as "isPrimary",
+        sort_order as "sortOrder",
+        annotations_json::text as "annotationsJson",
+        created_by as "createdBy",
+        created_at as "createdAt"
+      `,
+      [id, annotationsJson]
+    )
+    return result.rows[0]
+  }
+
 }

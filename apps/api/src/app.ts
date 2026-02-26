@@ -3,6 +3,7 @@ import { createAuthRouter } from './routes/auth'
 import { importsRouter } from './routes/imports'
 import { createJobsRouter } from './routes/jobs'
 import { createUploadsRouter } from './routes/uploads'
+import { createViewerRoutes } from './routes/viewer'
 import { deliveryRoutes } from './routes/deliveries'
 import { imageRoutes } from './routes/images'
 import { opsScreeningsRoutes } from './routes/ops-screenings'
@@ -35,7 +36,8 @@ app.route('/accounting', accountingRoutes)
 
 
 const bucketName = process.env.AWS_S3_BUCKET || 'tele-fundus-portal-assets'
+const endpoint = process.env.S3_ENDPOINT
+app.route('/viewer', createViewerRoutes(bucketName, process.env.S3_ENDPOINT))
 app.route('/uploads', createUploadsRouter(bucketName, process.env.S3_ENDPOINT))
 
 export default app
-
