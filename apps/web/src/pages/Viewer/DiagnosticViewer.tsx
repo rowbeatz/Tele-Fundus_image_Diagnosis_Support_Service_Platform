@@ -6,13 +6,14 @@ import { OCTViewer } from '../../components/canvas/OCTViewer'
 import { MeasureTool } from '../../components/canvas/MeasureTool'
 import { ThicknessMap } from '../../components/canvas/ThicknessMap'
 import { ScanLineOverlay } from '../../components/canvas/ScanLineOverlay'
+import { EnFaceViewer, OCTAViewer } from '../../components/canvas/AdvancedViewers'
 import { Button } from '../../components/ui/Button'
 import {
     ArrowLeft, Sun, Contrast, RotateCcw, Save, Settings2,
     MessageCircle, Grid2x2, Columns2, Square, Eye, Ruler,
     Send, Video, Monitor, Mic, MicOff, Camera, CameraOff,
     PhoneOff, AlertTriangle, ChevronDown, ChevronUp, Link2,
-    Scan, Layers, Map
+    Scan, Layers, Map, Maximize, Cuboid
 } from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -34,7 +35,7 @@ interface PatientInfo {
     sex: 'M' | 'F'
 }
 
-type LayoutMode = '1x1' | '1x2' | '2x2' | 'fundus+oct'
+type LayoutMode = '1x1' | '1x2' | '2x2' | 'fundus+oct' | 'enface' | 'octa'
 type ActiveTool = 'pan' | 'measure'
 
 // ─── Mock Data ──────────────────────────────────────────────────
@@ -176,7 +177,13 @@ export default function DiagnosticViewer() {
                     <button className={`layout-btn ${layout === 'fundus+oct' ? 'active' : ''}`} onClick={() => { setLayout('fundus+oct'); setShowOCT(true) }} title={lang === 'ja' ? '眼底 + OCT' : 'Fundus + OCT'}>
                         <Scan style={{ width: 16, height: 16 }} />
                     </button>
-                    {(layout === '1x2' || layout === '2x2') && (
+                    <button className={`layout-btn ${layout === 'enface' ? 'active' : ''}`} onClick={() => { setLayout('enface'); setShowOCT(false) }} title={lang === 'ja' ? '3D / En-Face' : '3D / En-Face'}>
+                        <Cuboid style={{ width: 16, height: 16 }} />
+                    </button>
+                    <button className={`layout-btn ${layout === 'octa' ? 'active' : ''}`} onClick={() => { setLayout('octa'); setShowOCT(false) }} title={lang === 'ja' ? 'OCTA 血管' : 'OCTA Angiography'}>
+                        <Maximize style={{ width: 16, height: 16 }} />
+                    </button>
+                    {(layout === '1x2' || layout === '2x2' || layout === 'fundus+oct') && (
                         <button className={`layout-btn ${syncPan ? 'active' : ''}`} onClick={() => setSyncPan(!syncPan)} title="Sync Zoom/Pan">
                             <Link2 style={{ width: 16, height: 16 }} />
                         </button>
@@ -268,6 +275,18 @@ export default function DiagnosticViewer() {
                                 t={t}
                             />
                         </>
+                    )}
+
+                    {/* Advanced Placeholders */}
+                    {layout === 'enface' && (
+                        <div className="viewer-pane" style={{ padding: 16 }}>
+                            <EnFaceViewer lang={lang} />
+                        </div>
+                    )}
+                    {layout === 'octa' && (
+                        <div className="viewer-pane" style={{ padding: 16 }}>
+                            <OCTAViewer lang={lang} />
+                        </div>
                     )}
                 </div>
 
