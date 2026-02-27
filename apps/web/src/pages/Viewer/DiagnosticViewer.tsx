@@ -7,13 +7,16 @@ import { MeasureTool } from '../../components/canvas/MeasureTool'
 import { ThicknessMap } from '../../components/canvas/ThicknessMap'
 import { ScanLineOverlay } from '../../components/canvas/ScanLineOverlay'
 import { EnFaceViewer, OCTAViewer } from '../../components/canvas/AdvancedViewers'
-import { Button } from '../../components/ui/Button'
+import { ClinicalInfoPanel } from '../../components/viewer/ClinicalInfoPanel'
+import { ReportPanel } from '../../components/viewer/ReportPanel'
+import { ProgressionView } from '../../components/viewer/ProgressionView'
 import {
-    ArrowLeft, Sun, Contrast, RotateCcw, Save, Settings2,
+    ArrowLeft, Sun, Contrast, RotateCcw,
     MessageCircle, Grid2x2, Columns2, Square, Eye, Ruler,
     Send, Video, Monitor, Mic, MicOff, Camera, CameraOff,
-    PhoneOff, AlertTriangle, ChevronDown, ChevronUp, Link2,
-    Scan, Layers, Map, Maximize, Cuboid
+    PhoneOff, AlertTriangle, Link2,
+    Scan, Layers, Map, Maximize, Cuboid,
+    PanelLeftClose, PanelRightClose, TrendingUp
 } from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -90,11 +93,12 @@ export default function DiagnosticViewer() {
     const [activeTool, setActiveTool] = useState<ActiveTool>('pan')
     const [showChat, setShowChat] = useState(false)
     const [showVideo, setShowVideo] = useState(false)
-    const [findings, setFindings] = useState('')
-    const [expandAdjust, setExpandAdjust] = useState(true)
     const [showOCT, setShowOCT] = useState(false)
     const [showThicknessMap, setShowThicknessMap] = useState(false)
     const [scanPosition, setScanPosition] = useState(50)
+    const [showLeftPanel, setShowLeftPanel] = useState(true)
+    const [showRightPanel, setShowRightPanel] = useState(true)
+    const [showProgression, setShowProgression] = useState(false)
 
     // Sync transform state (lifted from FundusCanvas)
     const [syncTransform, setSyncTransform] = useState({ x: 0, y: 0, scale: 1 })
@@ -163,8 +167,13 @@ export default function DiagnosticViewer() {
                     <span className="patient-detail">{currentImage.capturedAt}</span>
                 </div>
 
-                {/* Layout Toggle */}
+                {/* Panel Toggles */}
                 <div className="viewer-layout-toggle">
+                    <button className={`layout-btn ${showLeftPanel ? 'active' : ''}`} onClick={() => setShowLeftPanel(!showLeftPanel)} title={lang === 'ja' ? '臨床情報' : 'Clinical Info'}>
+                        <PanelLeftClose style={{ width: 16, height: 16 }} />
+                    </button>
+                    <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
+
                     <button className={`layout-btn ${layout === '1x1' ? 'active' : ''}`} onClick={() => { setLayout('1x1'); setShowOCT(false) }} title="Single View">
                         <Square style={{ width: 16, height: 16 }} />
                     </button>
@@ -188,112 +197,134 @@ export default function DiagnosticViewer() {
                             <Link2 style={{ width: 16, height: 16 }} />
                         </button>
                     )}
+                    <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
+                    <button className={`layout-btn ${showProgression ? 'active' : ''}`} onClick={() => setShowProgression(!showProgression)} title={lang === 'ja' ? '時系列比較' : 'Progression'}>
+                        <TrendingUp style={{ width: 16, height: 16 }} />
+                    </button>
+                    <button className={`layout-btn ${showRightPanel ? 'active' : ''}`} onClick={() => setShowRightPanel(!showRightPanel)} title={lang === 'ja' ? 'レポート' : 'Report'}>
+                        <PanelRightClose style={{ width: 16, height: 16 }} />
+                    </button>
                 </div>
             </div>
 
-            {/* ═══ Main Content ═══ */}
-            <div className="viewer-body">
-                {/* Viewer Panes */}
-                <div className={`viewer-panes layout-${layout === 'fundus+oct' ? '1x2' : layout}`}>
-                    {/* Primary Pane */}
-                    <ViewerPane
-                        image={currentImage}
-                        images={images}
-                        selectedIndex={currentIndex}
-                        onSelectImage={setCurrentIndex}
-                        brightness={brightness}
-                        contrast={contrast}
-                        invert={invert}
-                        activeTool={activeTool}
-                        syncTransform={layout !== '1x1' && layout !== 'fundus+oct' ? syncTransform : undefined}
-                        onTransformChange={handleTransformChange}
-                        lang={lang}
-                        t={t}
-                        showScanLine={showOCT}
-                        scanPosition={scanPosition}
-                        onScanPositionChange={setScanPosition}
-                        showThicknessMap={showThicknessMap}
-                    />
+            {/* ═══ Main Content (3-Column) ═══ */}
+            <div className="viewer-body" style={{ display: 'flex', overflow: 'hidden' }}>
+                {/* LEFT: Clinical Info */}
+                {showLeftPanel && (
+                    <div style={{ width: 260, minWidth: 260, flexShrink: 0, overflow: 'hidden', transition: 'width 0.2s' }}>
+                        {showProgression ? (
+                            <ProgressionView lang={lang} onClose={() => setShowProgression(false)} />
+                        ) : (
+                            <ClinicalInfoPanel lang={lang} />
+                        )}
+                    </div>
+                )}
 
-                    {/* OCT Viewer Pane (fundus+oct layout) */}
-                    {layout === 'fundus+oct' && (
-                        <div className="viewer-pane oct-pane">
-                            <OCTViewer
-                                scanPosition={scanPosition}
-                                onScanPositionChange={setScanPosition}
-                                brightness={brightness}
-                                contrast={contrast}
-                                invert={invert}
-                                lang={lang}
-                            />
-                        </div>
-                    )}
-
-                    {/* Secondary Pane (1x2 or 2x2) */}
-                    {(layout === '1x2' || layout === '2x2') && (
+                {/* CENTER: Everything else */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+                    {/* Viewer Panes */}
+                    <div className={`viewer-panes layout-${layout === 'fundus+oct' ? '1x2' : layout}`} style={{ flex: 1 }}>
+                        {/* Primary Pane */}
                         <ViewerPane
-                            image={secondImage}
+                            image={currentImage}
                             images={images}
-                            selectedIndex={secondIndex}
-                            onSelectImage={setSecondIndex}
+                            selectedIndex={currentIndex}
+                            onSelectImage={setCurrentIndex}
                             brightness={brightness}
                             contrast={contrast}
                             invert={invert}
                             activeTool={activeTool}
-                            syncTransform={syncPan ? syncTransform : undefined}
+                            syncTransform={layout !== '1x1' && layout !== 'fundus+oct' ? syncTransform : undefined}
                             onTransformChange={handleTransformChange}
                             lang={lang}
                             t={t}
+                            showScanLine={showOCT}
+                            scanPosition={scanPosition}
+                            onScanPositionChange={setScanPosition}
+                            showThicknessMap={showThicknessMap}
                         />
-                    )}
 
-                    {/* 2x2 extra panes */}
-                    {layout === '2x2' && (
-                        <>
+                        {/* OCT Viewer Pane (fundus+oct layout) */}
+                        {layout === 'fundus+oct' && (
+                            <div className="viewer-pane oct-pane">
+                                <OCTViewer
+                                    scanPosition={scanPosition}
+                                    onScanPositionChange={setScanPosition}
+                                    brightness={brightness}
+                                    contrast={contrast}
+                                    invert={invert}
+                                    lang={lang}
+                                />
+                            </div>
+                        )}
+
+                        {/* Secondary Pane (1x2 or 2x2) */}
+                        {(layout === '1x2' || layout === '2x2') && (
                             <ViewerPane
-                                image={images[2] || images[0]}
+                                image={secondImage}
                                 images={images}
-                                selectedIndex={2}
-                                onSelectImage={setCurrentIndex}
+                                selectedIndex={secondIndex}
+                                onSelectImage={setSecondIndex}
                                 brightness={brightness}
                                 contrast={contrast}
                                 invert={invert}
                                 activeTool={activeTool}
+                                syncTransform={syncPan ? syncTransform : undefined}
+                                onTransformChange={handleTransformChange}
                                 lang={lang}
                                 t={t}
                             />
-                            <ViewerPane
-                                image={images[3] || images[1]}
-                                images={images}
-                                selectedIndex={3}
-                                onSelectImage={setCurrentIndex}
-                                brightness={brightness}
-                                contrast={contrast}
-                                invert={invert}
-                                activeTool={activeTool}
-                                lang={lang}
-                                t={t}
-                            />
-                        </>
-                    )}
+                        )}
 
-                    {/* Advanced Placeholders */}
-                    {layout === 'enface' && (
-                        <div className="viewer-pane" style={{ padding: 16 }}>
-                            <EnFaceViewer lang={lang} />
-                        </div>
-                    )}
-                    {layout === 'octa' && (
-                        <div className="viewer-pane" style={{ padding: 16 }}>
-                            <OCTAViewer lang={lang} />
-                        </div>
-                    )}
-                </div>
+                        {/* 2x2 extra panes */}
+                        {layout === '2x2' && (
+                            <>
+                                <ViewerPane
+                                    image={images[2] || images[0]}
+                                    images={images}
+                                    selectedIndex={2}
+                                    onSelectImage={setCurrentIndex}
+                                    brightness={brightness}
+                                    contrast={contrast}
+                                    invert={invert}
+                                    activeTool={activeTool}
+                                    lang={lang}
+                                    t={t}
+                                />
+                                <ViewerPane
+                                    image={images[3] || images[1]}
+                                    images={images}
+                                    selectedIndex={3}
+                                    onSelectImage={setCurrentIndex}
+                                    brightness={brightness}
+                                    contrast={contrast}
+                                    invert={invert}
+                                    activeTool={activeTool}
+                                    lang={lang}
+                                    t={t}
+                                />
+                            </>
+                        )}
 
-                {/* ═══ Tools Panel ═══ */}
-                <div className="viewer-tools-panel">
-                    {/* Tool Buttons */}
-                    <div className="viewer-tool-buttons">
+                        {/* Advanced Placeholders */}
+                        {layout === 'enface' && (
+                            <div className="viewer-pane" style={{ padding: 16 }}>
+                                <EnFaceViewer lang={lang} />
+                            </div>
+                        )}
+                        {layout === 'octa' && (
+                            <div className="viewer-pane" style={{ padding: 16 }}>
+                                <OCTAViewer lang={lang} />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ═══ Tools Strip (horizontal, below viewer) ═══ */}
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
+                        borderTop: '1px solid var(--border)', background: 'var(--bg-card)', flexShrink: 0,
+                    }}>
+                        {/* Tool Buttons */}
                         <button className={`tool-btn ${activeTool === 'pan' ? 'active' : ''}`} onClick={() => setActiveTool('pan')} title="Pan / Zoom">
                             <Eye style={{ width: 16, height: 16 }} />
                         </button>
@@ -307,77 +338,35 @@ export default function DiagnosticViewer() {
                         <button className={`tool-btn ${showOCT ? 'active' : ''}`} onClick={() => { setShowOCT(!showOCT); if (!showOCT) setLayout('fundus+oct'); else setLayout('1x1') }} title="OCT">
                             <Layers style={{ width: 16, height: 16 }} />
                         </button>
-                    </div>
 
-                    {/* Adjustments Section (Collapsible) */}
-                    <div className="viewer-section">
-                        <button className="viewer-section-header" onClick={() => setExpandAdjust(!expandAdjust)}>
-                            <Settings2 style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
-                            <span>{t('viewer.adjustments')}</span>
-                            {expandAdjust ? <ChevronUp style={{ width: 14, height: 14, marginLeft: 'auto' }} /> : <ChevronDown style={{ width: 14, height: 14, marginLeft: 'auto' }} />}
-                        </button>
-                        {expandAdjust && (
-                            <div className="viewer-section-body">
-                                <SliderControl icon={<Sun style={{ width: 14, height: 14 }} />} label={t('viewer.brightness')} value={brightness} onChange={setBrightness} />
-                                <SliderControl icon={<Contrast style={{ width: 14, height: 14 }} />} label={t('viewer.contrast')} value={contrast} onChange={setContrast} />
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>{t('viewer.invert')}</span>
-                                    <ToggleSwitch checked={invert} onChange={setInvert} />
-                                </div>
-                                <button className="btn btn-ghost btn-sm" onClick={handleReset} style={{ width: '100%' }}>
-                                    <RotateCcw style={{ width: 14, height: 14 }} /> {t('viewer.reset')}
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                        <div style={{ flex: 1 }} />
 
-                    {/* Findings */}
-                    <div className="viewer-section">
-                        <div className="viewer-section-header" style={{ cursor: 'default' }}>
-                            <span style={{ fontWeight: 600 }}>{t('viewer.findings')}</span>
+                        {/* Image Adjustments */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            <Sun style={{ width: 12, height: 12 }} />
+                            <input type="range" min={0} max={200} value={brightness} onChange={e => setBrightness(Number(e.target.value))} style={{ width: 60, accentColor: 'var(--primary)' }} />
+                            <Contrast style={{ width: 12, height: 12, marginLeft: 4 }} />
+                            <input type="range" min={0} max={200} value={contrast} onChange={e => setContrast(Number(e.target.value))} style={{ width: 60, accentColor: 'var(--primary)' }} />
+                            <button onClick={() => setInvert(!invert)} className={`tool-btn ${invert ? 'active' : ''}`} title={t('viewer.invert')} style={{ padding: 4 }}>
+                                <RotateCcw style={{ width: 12, height: 12 }} />
+                            </button>
                         </div>
-                        <div className="viewer-section-body">
-                            <textarea
-                                className="input-field"
-                                style={{ minHeight: 100, resize: 'vertical', fontSize: '0.82rem' }}
-                                placeholder={t('viewer.findings_placeholder')}
-                                value={findings}
-                                onChange={e => setFindings(e.target.value)}
-                            />
-                        </div>
-                    </div>
 
-                    {/* Case Discussion (Inline, Unified) */}
-                    <div className="viewer-section">
-                        <button className="viewer-section-header" onClick={() => setShowChat(!showChat)}>
-                            <MessageCircle style={{ width: 16, height: 16, color: 'var(--primary)' }} />
-                            <span style={{ color: 'var(--primary)' }}>{lang === 'ja' ? 'ケースディスカッション' : 'Case Discussion'}</span>
-                            {showChat ? <ChevronUp style={{ width: 14, height: 14, marginLeft: 'auto' }} /> : <ChevronDown style={{ width: 14, height: 14, marginLeft: 'auto' }} />}
-                        </button>
-                        {showChat && (
-                            <InlineCaseChat
-                                showVideo={showVideo}
-                                onToggleVideo={() => setShowVideo(!showVideo)}
-                                lang={lang}
-                            />
-                        )}
-                    </div>
+                        <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 2px' }} />
 
-                    {/* Bottom Actions */}
-                    <div className="viewer-bottom-actions">
-                        <div style={{ display: 'flex', gap: 6 }}>
-                            <Button variant="outline" style={{ flex: 1 }} disabled={currentIndex === 0} onClick={() => setCurrentIndex(p => p - 1)}>
-                                {t('viewer.prev')}
-                            </Button>
-                            <Button variant="outline" style={{ flex: 1 }} disabled={currentIndex === images.length - 1} onClick={() => setCurrentIndex(p => p + 1)}>
-                                {t('viewer.next')}
-                            </Button>
-                        </div>
-                        <Button className="w-full justify-center" disabled={isSaving} onClick={handleCompleteQC}>
-                            {isSaving ? t('viewer.submitting') : <><Save style={{ width: 16, height: 16 }} /> {t('viewer.submit')}</>}
-                        </Button>
+                        {/* Prev / Next */}
+                        <button className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '4px 8px', minHeight: 28 }} disabled={currentIndex === 0} onClick={() => setCurrentIndex(p => p - 1)}>←</button>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{currentIndex + 1}/{images.length}</span>
+                        <button className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '4px 8px', minHeight: 28 }} disabled={currentIndex === images.length - 1} onClick={() => setCurrentIndex(p => p + 1)}>→</button>
                     </div>
-                </div>
+                </div>{/* end center column */}
+
+                {/* RIGHT: Report Panel */}
+                {showRightPanel && (
+                    <div style={{ width: 300, minWidth: 300, flexShrink: 0, overflow: 'hidden', transition: 'width 0.2s' }}>
+                        <ReportPanel lang={lang} onSubmit={handleCompleteQC} />
+                    </div>
+                )}
             </div>
         </div>
     )

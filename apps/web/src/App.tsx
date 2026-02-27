@@ -15,6 +15,10 @@ import UserManagement from './pages/Admin/UserManagement'
 import RolePermissions from './pages/Admin/RolePermissions'
 import ImageGovernance from './pages/Admin/ImageGovernance'
 import BrandSettings from './pages/Admin/BrandSettings'
+import PatientList from './pages/Patient/PatientList'
+import PatientDetail from './pages/Patient/PatientDetail'
+import PatientRegister from './pages/Patient/PatientRegister'
+import ScreeningRegister from './pages/Screening/ScreeningRegister'
 
 function App() {
   return (
@@ -40,7 +44,10 @@ function App() {
                     <Route path="/admin/image-governance" element={<ImageGovernance />} />
                     <Route path="/admin/brand" element={<BrandSettings />} />
                     {/* Placeholder routes */}
-                    <Route path="/patients" element={<Dashboard />} />
+                    <Route path="/patients" element={<PatientList />} />
+                    <Route path="/patients/new" element={<PatientRegister />} />
+                    <Route path="/patients/:id" element={<PatientDetail />} />
+                    <Route path="/screenings/new/:patientId" element={<ScreeningRegister />} />
                     <Route path="/readings" element={<Dashboard />} />
                     <Route path="/ops/qc" element={<TaskBoard />} />
                     <Route path="/admin/organizations" element={<Dashboard />} />
