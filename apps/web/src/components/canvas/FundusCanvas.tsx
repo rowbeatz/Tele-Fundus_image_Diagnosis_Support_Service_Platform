@@ -6,9 +6,13 @@ interface FundusCanvasProps {
     contrast: number
     invert: boolean
     onAnnotationsChange?: (annotations: any) => void
+    // Sync support
+    externalPan?: { x: number; y: number }
+    externalScale?: number
+    onTransformChange?: (x: number, y: number, scale: number) => void
 }
 
-export function FundusCanvas({ imageUrl, brightness, contrast, invert }: FundusCanvasProps) {
+export function FundusCanvas({ imageUrl, brightness, contrast, invert, externalPan, externalScale, onTransformChange }: FundusCanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const imageRef = useRef<HTMLImageElement | null>(null)
 
@@ -17,6 +21,15 @@ export function FundusCanvas({ imageUrl, brightness, contrast, invert }: FundusC
     const [pan, setPan] = useState({ x: 0, y: 0 })
     const [isDragging, setIsDragging] = useState(false)
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+
+    // Apply external sync
+    useEffect(() => {
+        if (externalPan) setPan(externalPan)
+    }, [externalPan?.x, externalPan?.y])
+
+    useEffect(() => {
+        if (externalScale !== undefined) setScale(externalScale)
+    }, [externalScale])
 
     // Draw loop
     const draw = useCallback(() => {
@@ -95,7 +108,9 @@ export function FundusCanvas({ imageUrl, brightness, contrast, invert }: FundusC
         e.preventDefault()
         const zoomSensitivity = 0.001
         const delta = -e.deltaY * zoomSensitivity
-        setScale(prev => Math.min(Math.max(0.1, prev + delta), 10))
+        const newScale = Math.min(Math.max(0.1, scale + delta), 10)
+        setScale(newScale)
+        if (onTransformChange) onTransformChange(pan.x, pan.y, newScale)
     }
 
     const handlePointerDown = (e: React.PointerEvent) => {
@@ -110,8 +125,10 @@ export function FundusCanvas({ imageUrl, brightness, contrast, invert }: FundusC
         if (!isDragging) return
         const dx = e.clientX - dragStart.x
         const dy = e.clientY - dragStart.y
-        setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }))
+        const newPan = { x: pan.x + dx, y: pan.y + dy }
+        setPan(newPan)
         setDragStart({ x: e.clientX, y: e.clientY })
+        if (onTransformChange) onTransformChange(newPan.x, newPan.y, scale)
     }
 
     const handlePointerUp = (e: React.PointerEvent) => {

@@ -8,6 +8,9 @@ import { Sidebar } from './Sidebar'
 import { ChatPanel } from '../communication/ChatPanel'
 import { X, Pin, MessageSquare } from 'lucide-react'
 
+// Detect if on the viewer page (which has its own inline chat)
+const isViewerPath = (path: string) => path.startsWith('/viewer/')
+
 // Map paths to translation keys for tab titles
 const pathToTitleKey: Record<string, string> = {
     '/dashboard': 'nav.dashboard',
@@ -146,20 +149,24 @@ export function MainLayout() {
                 </main>
             </div>
 
-            {/* Chat Panel — flex sidebar, not overlay */}
-            <ChatPanel open={chatOpen} onClose={closeChat} />
+            {/* Chat Panel — flex sidebar, not overlay (hidden on viewer pages) */}
+            {!isViewerPath(location.pathname) && (
+                <ChatPanel open={chatOpen} onClose={closeChat} />
+            )}
 
-            {/* Interactive Chat Edge Handle */}
-            <div
-                className={`chat-edge-handle ${chatOpen ? 'open' : ''}`}
-                onClick={toggleChat}
-                title={chatOpen ? t('chat.close' as any) : t('chat.title' as any)}
-            >
-                <div className="handle-content">
-                    <MessageSquare className="handle-icon" />
-                    {!chatOpen && <span className="handle-dot" />}
+            {/* Interactive Chat Edge Handle (hidden on viewer pages) */}
+            {!isViewerPath(location.pathname) && (
+                <div
+                    className={`chat-edge-handle ${chatOpen ? 'open' : ''}`}
+                    onClick={toggleChat}
+                    title={chatOpen ? t('chat.close' as any) : t('chat.title' as any)}
+                >
+                    <div className="handle-content">
+                        <MessageSquare className="handle-icon" />
+                        {!chatOpen && <span className="handle-dot" />}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }
