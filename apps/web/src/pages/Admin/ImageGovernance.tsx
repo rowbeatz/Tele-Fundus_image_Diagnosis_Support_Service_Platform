@@ -43,7 +43,7 @@ export default function ImageGovernance() {
             <div>
                 <h1>{t('admin.image.title')}</h1>
                 <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>
-                    Image data lifecycle, consent management, and secondary use controls
+                    {t('admin.image.subtitle' as any)}
                 </p>
             </div>
 
@@ -73,12 +73,12 @@ export default function ImageGovernance() {
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th style={{ minWidth: 180 }}>Organization</th>
+                                <th style={{ minWidth: 180 }}>{t('admin.image.org' as any)}</th>
                                 <th>{t('admin.image.client_type')}</th>
                                 <th>{t('admin.image.deletion')}</th>
                                 <th>{t('admin.image.secondary')}</th>
                                 <th>{t('admin.image.masking')}</th>
-                                <th>Retention</th>
+                                <th>{t('admin.image.retention' as any)}</th>
                                 <th>{t('table.action')}</th>
                             </tr>
                         </thead>
@@ -137,7 +137,9 @@ export default function ImageGovernance() {
                                                 {p.masking ? t('admin.image.masking.enabled') : t('admin.image.masking.disabled')}
                                             </button>
                                         </td>
-                                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{Math.round(p.retentionDays / 365)}y</td>
+                                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                                            {t('admin.image.retention.years' as any).replace('{years}', String(Math.round(p.retentionDays / 365)))}
+                                        </td>
                                         <td>
                                             <button className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '4px 10px', minHeight: 28 }}>
                                                 {t('admin.users.edit')}
@@ -156,7 +158,7 @@ export default function ImageGovernance() {
                     <div className="panel" style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ margin: 0 }}>{t('admin.image.consent.direct')}</h3>
                         <button className="btn btn-primary" style={{ fontSize: '0.8rem' }}>
-                            + New Consent Request
+                            {t('admin.image.consent.new' as any)}
                         </button>
                     </div>
 
@@ -164,11 +166,11 @@ export default function ImageGovernance() {
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Subject</th>
+                                    <th>{t('admin.image.consent.subject' as any)}</th>
                                     <th>{t('admin.image.client_type')}</th>
-                                    <th>Consent Type</th>
+                                    <th>{t('admin.image.consent.type' as any)}</th>
                                     <th>{t('admin.image.consent.status')}</th>
-                                    <th>Date</th>
+                                    <th>{t('admin.image.consent.date' as any)}</th>
                                     <th>{t('table.action')}</th>
                                 </tr>
                             </thead>

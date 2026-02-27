@@ -119,9 +119,10 @@ export default function RolePermissions() {
 
     const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000) }
 
+    // Map roles dynamically using i18n
     const roleDisplayNames: Record<string, string> = {
-        super_admin: 'Super Admin', admin: 'Admin', operator: 'Operator',
-        physician: 'Physician', client: 'Client', individual: 'Individual',
+        super_admin: t('admin.roles.super_admin'), admin: t('admin.roles.admin'), operator: t('admin.roles.operator'),
+        physician: t('admin.roles.physician'), client: t('admin.roles.client'), individual: t('admin.roles.individual'),
     }
 
     return (
@@ -166,7 +167,7 @@ export default function RolePermissions() {
                                 {cat.perms.map(perm => (
                                     <tr key={perm.key}>
                                         <td style={{ position: 'sticky', left: 0, background: 'var(--bg-card)', zIndex: 1, fontSize: '0.85rem' }}>
-                                            {perm.name}
+                                            {t(perm.key as any)}
                                         </td>
                                         {roles.map(r => {
                                             const has = matrix[r]?.has(perm.key)

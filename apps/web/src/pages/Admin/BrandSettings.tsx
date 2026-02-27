@@ -38,14 +38,14 @@ export default function BrandSettings() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     <h1>{t('admin.brand.title')}</h1>
-                    <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>White-label configuration</p>
+                    <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>{t('admin.brand.subtitle')}</p>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                     <button className="btn btn-secondary" onClick={handleReset}>
                         <RotateCcw style={{ width: 16, height: 16 }} /> {t('admin.brand.reset')}
                     </button>
                     <button className="btn btn-primary" onClick={handleSave}>
-                        {saved ? <><Check style={{ width: 16, height: 16 }} /> Saved!</> : <><Save style={{ width: 16, height: 16 }} /> {t('admin.brand.save')}</>}
+                        {saved ? <><Check style={{ width: 16, height: 16 }} /> {t('admin.brand.saved' as any)}</> : <><Save style={{ width: 16, height: 16 }} /> {t('admin.brand.save')}</>}
                     </button>
                 </div>
             </div>
@@ -55,7 +55,7 @@ export default function BrandSettings() {
                 <div className="panel space-y-6">
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Palette style={{ width: 20, height: 20, color: 'var(--primary)' }} />
-                        Configuration
+                        {t('admin.brand.config' as any)}
                     </h3>
 
                     <div>
@@ -77,7 +77,7 @@ export default function BrandSettings() {
                                     onClick={() => fileRef.current?.click()}>
                                     <Upload style={{ width: 14, height: 14 }} /> {t('admin.brand.upload')}
                                 </button>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>PNG, SVG. Recommended 256×256px</p>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>{t('admin.brand.upload_hint' as any)}</p>
                                 <input type="file" ref={fileRef} onChange={handleLogoUpload} accept="image/*" style={{ display: 'none' }} />
                             </div>
                         </div>
@@ -108,7 +108,7 @@ export default function BrandSettings() {
                             <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{name}</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            {['Dashboard', 'Patients', 'Upload Images'].map((item, i) => (
+                            {[t('nav.dashboard'), t('nav.patients'), t('nav.uploads')].map((item, i) => (
                                 <div key={item} style={{
                                     padding: '8px 12px', borderRadius: 6, fontSize: '0.8rem',
                                     background: i === 0 ? 'rgba(13,148,136,0.15)' : 'transparent',

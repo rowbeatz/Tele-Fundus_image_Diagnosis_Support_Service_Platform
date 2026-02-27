@@ -1,9 +1,12 @@
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useBrand } from '../../contexts/BrandContext'
 import { useTranslation, LanguageToggle } from '../../lib/i18n'
 import { useFontSize } from '../../contexts/FontSizeContext'
 import { Bell, LogOut, Menu, MessageSquare, Type } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+
+type FontSize = 'small' | 'normal' | 'large'
 
 const fontSizeTooltips = { small: 'Small text', normal: 'Normal text', large: 'Large text' } as const
 
@@ -16,14 +19,27 @@ interface HeaderProps {
 export function Header({ onMenuToggle, onChatToggle, chatOpen }: HeaderProps) {
     const { user, logout } = useAuth()
     const { brand } = useBrand()
-    const { t } = useTranslation()
-    const { fontSize, cycleFontSize } = useFontSize()
+    const { t, lang } = useTranslation()
+    const { fontSize, setFontSize } = useFontSize()
     const navigate = useNavigate()
+    const [showFontPopup, setShowFontPopup] = useState(false)
+    const fontPopupRef = useRef<HTMLDivElement>(null)
 
     const handleLogout = async () => {
         await logout()
         navigate('/login')
     }
+
+    // Close font popup on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (fontPopupRef.current && !fontPopupRef.current.contains(e.target as Node)) {
+                setShowFontPopup(false)
+            }
+        }
+        if (showFontPopup) document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [showFontPopup])
 
     const roleBadgeColor: Record<string, string> = {
         admin: '#dc2626',
@@ -38,6 +54,12 @@ export function Header({ onMenuToggle, onChatToggle, chatOpen }: HeaderProps) {
         physician: 'Physician',
         client: 'Client',
     }
+
+    const fontSizes: { key: FontSize, labelEn: string, labelJa: string }[] = [
+        { key: 'small', labelEn: 'Small', labelJa: '小' },
+        { key: 'normal', labelEn: 'Normal', labelJa: '標準' },
+        { key: 'large', labelEn: 'Large', labelJa: '大' },
+    ]
 
     return (
         <header className="header">
@@ -55,16 +77,42 @@ export function Header({ onMenuToggle, onChatToggle, chatOpen }: HeaderProps) {
             </div>
 
             <div className="header-actions">
-                {/* Font Size Toggle */}
-                <button
-                    className="header-icon-btn font-size-btn"
-                    onClick={cycleFontSize}
-                    title={fontSizeTooltips[fontSize]}
-                    style={{ position: 'relative' }}
-                >
-                    <Type style={{ width: 18, height: 18 }} />
-                    <span className="font-size-indicator">{fontSize[0].toUpperCase()}</span>
-                </button>
+                {/* Font Size Toggle with Gauge Popup */}
+                <div style={{ position: 'relative' }} ref={fontPopupRef}>
+                    <button
+                        className="header-icon-btn font-size-btn"
+                        onClick={() => setShowFontPopup(p => !p)}
+                        title={fontSizeTooltips[fontSize]}
+                    >
+                        <Type style={{ width: 18, height: 18 }} />
+                        <span className="font-size-indicator">{fontSize[0].toUpperCase()}</span>
+                    </button>
+
+                    {showFontPopup && (
+                        <div className="font-size-popup">
+                            <div className="font-size-popup-label">
+                                {lang === 'ja' ? 'フォントサイズ' : 'Font Size'}
+                            </div>
+                            <div className="font-gauge">
+                                {fontSizes.map(fs => (
+                                    <button
+                                        key={fs.key}
+                                        className={`font-gauge-btn ${fontSize === fs.key ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setFontSize(fs.key)
+                                            setShowFontPopup(false)
+                                        }}
+                                    >
+                                        <span className="font-gauge-sample">Aa</span>
+                                        <span className="font-gauge-label">
+                                            {lang === 'ja' ? fs.labelJa : fs.labelEn}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 <LanguageToggle />
 

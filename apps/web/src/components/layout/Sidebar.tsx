@@ -1,13 +1,13 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useBrand } from '../../contexts/BrandContext'
 import { useTranslation, LanguageToggle } from '../../lib/i18n'
 import {
     LayoutDashboard, Users, Upload, Stethoscope, ClipboardList, ShieldCheck,
-    Building2, CreditCard, Settings, ChevronDown, ChevronRight,
+    Building2, CreditCard, Settings,
     UserCog, Lock, ImageIcon, Palette, X,
 } from 'lucide-react'
-import { useState } from 'react'
+
 
 const allNav = [
     { key: 'nav.dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['admin', 'operator', 'physician', 'client'] },
@@ -37,8 +37,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     const { user } = useAuth()
     const { brand } = useBrand()
     const { t } = useTranslation()
-    const location = useLocation()
-    const [adminOpen, setAdminOpen] = useState(() => location.pathname.startsWith('/admin/'))
     const role = user?.role || 'client'
 
     const filteredNav = allNav.filter(n => (n.roles as readonly string[]).includes(role))
@@ -82,36 +80,31 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                     )
                 })}
 
-                {/* Admin sub-section */}
+                {/* Admin sub-section — always visible for admin role */}
                 {role === 'admin' && (
                     <>
-                        <button
-                            className={`sidebar-link sidebar-section-toggle ${adminOpen ? 'active' : ''}`}
-                            onClick={() => setAdminOpen(p => !p)}
-                            style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', color: 'inherit', font: 'inherit' }}
-                        >
-                            <Settings className="sidebar-icon" />
-                            <span>{t('nav.admin')}</span>
-                            {adminOpen ? <ChevronDown style={{ width: 14, height: 14, marginLeft: 'auto' }} /> : <ChevronRight style={{ width: 14, height: 14, marginLeft: 'auto' }} />}
-                        </button>
-                        {adminOpen && (
-                            <div className="sidebar-sub-nav">
-                                {adminSubNav.map(item => {
-                                    const Icon = item.icon
-                                    return (
-                                        <NavLink
-                                            key={item.path}
-                                            to={item.path}
-                                            onClick={handleNavClick}
-                                            className={({ isActive }) => `sidebar-link sidebar-sub-link ${isActive ? 'active' : ''}`}
-                                        >
-                                            <Icon className="sidebar-icon" />
-                                            <span>{t(item.key as any)}</span>
-                                        </NavLink>
-                                    )
-                                })}
-                            </div>
-                        )}
+                        <div className="sidebar-section-label" style={{
+                            padding: '16px 14px 6px', fontSize: '0.65rem', fontWeight: 700,
+                            textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--sidebar-text)', opacity: 0.5,
+                        }}>
+                            {t('nav.admin' as any)}
+                        </div>
+                        <div className="sidebar-sub-nav">
+                            {adminSubNav.map(item => {
+                                const Icon = item.icon
+                                return (
+                                    <NavLink
+                                        key={item.path}
+                                        to={item.path}
+                                        onClick={handleNavClick}
+                                        className={({ isActive }) => `sidebar-link sidebar-sub-link ${isActive ? 'active' : ''}`}
+                                    >
+                                        <Icon className="sidebar-icon" />
+                                        <span>{t(item.key as any)}</span>
+                                    </NavLink>
+                                )
+                            })}
+                        </div>
                     </>
                 )}
             </nav>

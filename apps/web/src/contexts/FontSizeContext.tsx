@@ -5,7 +5,7 @@ type FontSize = 'small' | 'normal' | 'large'
 const fontSizeMap: Record<FontSize, number> = {
     small: 13,
     normal: 15,
-    large: 17,
+    large: 20,
 }
 
 interface FontSizeContextType {

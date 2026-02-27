@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTranslation } from '../../lib/i18n'
@@ -6,7 +6,7 @@ import { useTabs } from '../../contexts/TabContext'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { ChatPanel } from '../communication/ChatPanel'
-import { X } from 'lucide-react'
+import { X, Pin } from 'lucide-react'
 
 // Map paths to translation keys for tab titles
 const pathToTitleKey: Record<string, string> = {
@@ -39,14 +39,14 @@ export function MainLayout() {
     const toggleChat = useCallback(() => setChatOpen(p => !p), [])
     const closeChat = useCallback(() => setChatOpen(false), [])
 
-    // Auto-open tab when navigating
-    useEffect(() => {
+    // Pin current page as a tab
+    const pinCurrentPage = () => {
         const path = location.pathname
         const titleKey = pathToTitleKey[path]
         if (titleKey) {
-            openTab({ title: t(titleKey as any), path })
+            openTab({ title: t(titleKey as any), path, pinned: true })
         }
-    }, [location.pathname])
+    }
 
     // Navigate when switching tabs
     const handleTabClick = (tabId: string) => {
@@ -61,7 +61,6 @@ export function MainLayout() {
         e.stopPropagation()
         const tab = tabs.find(t => t.id === tabId)
         closeTab(tabId)
-        // If closing active tab, navigate to neighbor
         if (tab && activeTabId === tabId) {
             const remaining = tabs.filter(t => t.id !== tabId)
             if (remaining.length > 0) {
@@ -99,31 +98,43 @@ export function MainLayout() {
                 onClick={closeSidebar}
             />
             <Sidebar open={sidebarOpen} onClose={closeSidebar} />
-            <div className="layout-content">
+
+            <div className="layout-content" style={{ flex: 1, minWidth: 0 }}>
                 <Header onMenuToggle={toggleSidebar} onChatToggle={toggleChat} chatOpen={chatOpen} />
 
-                {/* Tab Bar — "browser within browser" secondary toolbar */}
-                {tabs.length > 0 && (
-                    <div className="tab-bar">
-                        <div className="tab-bar-inner">
-                            {tabs.map(tab => (
-                                <button
-                                    key={tab.id}
-                                    className={`tab-item ${activeTabId === tab.id ? 'active' : ''}`}
-                                    onClick={() => handleTabClick(tab.id)}
+                {/* Tab Bar — only shows pinned tabs */}
+                <div className="tab-bar">
+                    <div className="tab-bar-inner">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                className={`tab-item ${activeTabId === tab.id ? 'active' : ''}`}
+                                onClick={() => handleTabClick(tab.id)}
+                            >
+                                <span className={`tab-pin pinned`} title="Pinned">
+                                    <Pin style={{ width: 10, height: 10 }} />
+                                </span>
+                                <span className="tab-title">{tab.title}</span>
+                                <span
+                                    className="tab-close"
+                                    onClick={(e) => handleTabClose(e, tab.id)}
                                 >
-                                    <span className="tab-title">{tab.title}</span>
-                                    <span
-                                        className="tab-close"
-                                        onClick={(e) => handleTabClose(e, tab.id)}
-                                    >
-                                        <X style={{ width: 12, height: 12 }} />
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
+                                    <X style={{ width: 12, height: 12 }} />
+                                </span>
+                            </button>
+                        ))}
+                        {/* Pin current page button */}
+                        <button
+                            className="tab-item"
+                            onClick={pinCurrentPage}
+                            style={{ opacity: 0.5, fontSize: '0.75rem' }}
+                            title="Pin this page"
+                        >
+                            <Pin style={{ width: 12, height: 12 }} />
+                            <span style={{ fontSize: '0.7rem' }}>Pin</span>
+                        </button>
                     </div>
-                )}
+                </div>
 
                 <main style={{
                     flex: 1, overflowY: 'auto', padding: '24px 28px',
@@ -135,7 +146,7 @@ export function MainLayout() {
                 </main>
             </div>
 
-            {/* Chat Panel */}
+            {/* Chat Panel — flex sidebar, not overlay */}
             <ChatPanel open={chatOpen} onClose={closeChat} />
         </div>
     )

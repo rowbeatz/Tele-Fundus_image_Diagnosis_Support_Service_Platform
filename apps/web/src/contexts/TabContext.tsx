@@ -5,6 +5,7 @@ export interface TabItem {
     title: string
     path: string
     icon?: string
+    pinned: boolean
 }
 
 interface TabContextType {
@@ -13,6 +14,8 @@ interface TabContextType {
     openTab: (tab: Omit<TabItem, 'id'>) => void
     closeTab: (id: string) => void
     switchTab: (id: string) => void
+    pinTab: (id: string) => void
+    unpinTab: (id: string) => void
     closeAllTabs: () => void
 }
 
@@ -26,14 +29,15 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
     const [activeTabId, setActiveTabId] = useState<string | null>(null)
 
     const openTab = useCallback((tab: Omit<TabItem, 'id'>) => {
+        // Only add tab if it's pinned — otherwise just note it as active without adding
+        if (!tab.pinned) return
+
         setTabs(prev => {
-            // If tab for this path already exists, activate it
             const existing = prev.find(t => t.path === tab.path)
             if (existing) {
                 setActiveTabId(existing.id)
                 return prev
             }
-            // Max 8 tabs
             const newTab: TabItem = { ...tab, id: generateId() }
             const updated = prev.length >= 8 ? [...prev.slice(1), newTab] : [...prev, newTab]
             setActiveTabId(newTab.id)
@@ -46,7 +50,6 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
             const idx = prev.findIndex(t => t.id === id)
             const updated = prev.filter(t => t.id !== id)
             if (activeTabId === id && updated.length > 0) {
-                // Activate neighbor tab
                 const newIdx = Math.min(idx, updated.length - 1)
                 setActiveTabId(updated[newIdx].id)
             } else if (updated.length === 0) {
@@ -60,13 +63,21 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
         setActiveTabId(id)
     }, [])
 
+    const pinTab = useCallback((id: string) => {
+        setTabs(prev => prev.map(t => t.id === id ? { ...t, pinned: true } : t))
+    }, [])
+
+    const unpinTab = useCallback((id: string) => {
+        setTabs(prev => prev.filter(t => t.id !== id || t.pinned))
+    }, [])
+
     const closeAllTabs = useCallback(() => {
         setTabs([])
         setActiveTabId(null)
     }, [])
 
     return (
-        <TabContext.Provider value={{ tabs, activeTabId, openTab, closeTab, switchTab, closeAllTabs }}>
+        <TabContext.Provider value={{ tabs, activeTabId, openTab, closeTab, switchTab, pinTab, unpinTab, closeAllTabs }}>
             {children}
         </TabContext.Provider>
     )

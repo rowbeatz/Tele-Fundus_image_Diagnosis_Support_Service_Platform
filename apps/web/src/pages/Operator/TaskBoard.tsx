@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useTranslation } from '../../lib/i18n'
-import { MoreHorizontal, CheckCircle2, Clock } from 'lucide-react'
+import { MoreHorizontal, CheckCircle2, Clock, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const initialTasks = [
@@ -80,11 +80,15 @@ export default function TaskBoard() {
                                             </button>
                                         )}
                                         {col.id === 'qc_review' && (
-                                            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                                            <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
                                                 <button className="btn btn-secondary" style={{ flex: 1, fontSize: '0.75rem', minHeight: 30 }}
                                                     onClick={() => navigate(`/viewer/${task.id}`)}>{t('taskboard.review')}</button>
                                                 <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.75rem', minHeight: 30, background: 'var(--success)', borderColor: 'var(--success)' }}>
                                                     <CheckCircle2 style={{ width: 12, height: 12 }} /> {t('taskboard.approve')}
+                                                </button>
+                                                <button className="question-btn" style={{ width: '100%', justifyContent: 'center', marginTop: 2 }}>
+                                                    <AlertTriangle style={{ width: 12, height: 12 }} />
+                                                    疑義照会
                                                 </button>
                                             </div>
                                         )}

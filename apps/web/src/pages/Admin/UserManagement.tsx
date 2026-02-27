@@ -15,12 +15,12 @@ const demoUsers: DemoUser[] = [
     { id: '5', fullName: 'Dr. 佐藤 恵理子', email: 'dr.sato@retinainsight.jp', role: 'physician', adminLevel: 'standard', isActive: true, lastLogin: '2026-02-27 07:50' },
 ]
 
-const roleBadge: Record<string, { cls: string; label: string }> = {
-    admin: { cls: 'badge-danger', label: 'Admin' },
-    operator: { cls: 'badge-warning', label: 'Operator' },
-    physician: { cls: 'badge-info', label: 'Physician' },
-    client: { cls: 'badge-success', label: 'Client' },
-    individual: { cls: 'badge-neutral', label: 'Individual' },
+const roleBadge: Record<string, { cls: string; key: string }> = {
+    admin: { cls: 'badge-danger', key: 'admin.roles.admin' },
+    operator: { cls: 'badge-warning', key: 'admin.roles.operator' },
+    physician: { cls: 'badge-info', key: 'admin.roles.physician' },
+    client: { cls: 'badge-success', key: 'admin.roles.client' },
+    individual: { cls: 'badge-neutral', key: 'admin.roles.individual' },
 }
 
 export default function UserManagement() {
@@ -44,7 +44,9 @@ export default function UserManagement() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     <h1>{t('admin.users.title')}</h1>
-                    <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>{filtered.length} users</p>
+                    <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>
+                        {t('admin.users.count_users' as any).replace('{count}', String(filtered.length))}
+                    </p>
                 </div>
                 <button className="btn btn-primary" onClick={() => { setEditUser(null); setShowModal(true) }}>
                     <Plus style={{ width: 18, height: 18 }} /> {t('admin.users.add')}
@@ -54,7 +56,7 @@ export default function UserManagement() {
             <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Search style={{ width: 18, height: 18, color: 'var(--text-muted)' }} />
-                    <input className="input-field" placeholder="Search users…" value={search} onChange={e => setSearch(e.target.value)}
+                    <input className="input-field" placeholder={t('admin.users.search_placeholder' as any)} value={search} onChange={e => setSearch(e.target.value)}
                         style={{ border: 'none', boxShadow: 'none', padding: '4px 0' }} />
                 </div>
                 <table className="data-table">
@@ -71,7 +73,7 @@ export default function UserManagement() {
                     </thead>
                     <tbody>
                         {filtered.map(u => {
-                            const rb = roleBadge[u.role] || { cls: 'badge-neutral', label: u.role }
+                            const rb = roleBadge[u.role] || { cls: 'badge-neutral', key: 'admin.roles.operator' }
                             return (
                                 <tr key={u.id}>
                                     <td style={{ fontWeight: 500 }}>
@@ -88,7 +90,7 @@ export default function UserManagement() {
                                         </div>
                                     </td>
                                     <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{u.email}</td>
-                                    <td><span className={`badge ${rb.cls}`}>{rb.label}</span></td>
+                                    <td><span className={`badge ${rb.cls}`}>{t(rb.key as any)}</span></td>
                                     <td>
                                         {u.adminLevel === 'super_admin' ? (
                                             <span className="badge badge-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -147,11 +149,11 @@ export default function UserManagement() {
                                     <label className="label">{t('admin.users.role')}</label>
                                     <div className="select-wrapper">
                                         <select className="input-field" defaultValue={editUser?.role || 'operator'}>
-                                            <option value="admin">Admin</option>
-                                            <option value="operator">Operator</option>
-                                            <option value="physician">Physician</option>
-                                            <option value="client">Client</option>
-                                            <option value="individual">Individual</option>
+                                            <option value="admin">{t('admin.roles.admin')}</option>
+                                            <option value="operator">{t('admin.roles.operator')}</option>
+                                            <option value="physician">{t('admin.roles.physician')}</option>
+                                            <option value="client">{t('admin.roles.client')}</option>
+                                            <option value="individual">{t('admin.roles.individual')}</option>
                                         </select>
                                         <ChevronDown className="select-icon" />
                                     </div>
@@ -170,7 +172,7 @@ export default function UserManagement() {
                         </div>
                         <div style={{ display: 'flex', gap: 8, marginTop: 24, justifyContent: 'flex-end' }}>
                             <button className="btn btn-secondary" onClick={() => setShowModal(false)}>{t('admin.users.cancel')}</button>
-                            <button className="btn btn-primary" onClick={() => { setShowModal(false); alert('Saved!') }}>{t('admin.users.save')}</button>
+                            <button className="btn btn-primary" onClick={() => { setShowModal(false); alert(t('admin.roles.saved')) }}>{t('admin.users.save')}</button>
                         </div>
                     </div>
                 </div>
