@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react'
 import { useBrand } from '../../contexts/BrandContext'
 import { useTranslation } from '../../lib/i18n'
-import { Palette, Upload, RotateCcw, Save, Check } from 'lucide-react'
+import { Palette, Upload, RotateCcw, Save, Check, X } from 'lucide-react'
+import Cropper from 'react-easy-crop'
+import { getCroppedImg } from '../../utils/cropImage'
 
 export default function BrandSettings() {
     const { brand, updateBrand, resetBrand } = useBrand()
@@ -12,12 +14,45 @@ export default function BrandSettings() {
     const [saved, setSaved] = useState(false)
     const fileRef = useRef<HTMLInputElement>(null)
 
+    // Cropper State
+    const [imageSrc, setImageSrc] = useState<string | null>(null)
+    const [crop, setCrop] = useState({ x: 0, y: 0 })
+    const [zoom, setZoom] = useState(1)
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<{ x: number, y: number, width: number, height: number } | null>(null)
+    const [isCropping, setIsCropping] = useState(false)
+
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
             const url = URL.createObjectURL(file)
-            setLogoPreview(url)
+            setImageSrc(url)
+            setIsCropping(true)
+            // Reset the file input so the same file could be selected again if cancelled
+            if (fileRef.current) {
+                fileRef.current.value = ''
+            }
         }
+    }
+
+    const handleCropComplete = (_croppedArea: { x: number, y: number, width: number, height: number }, croppedAreaPixels: { x: number, y: number, width: number, height: number }) => {
+        setCroppedAreaPixels(croppedAreaPixels)
+    }
+
+    const finishCropping = async () => {
+        try {
+            if (imageSrc && croppedAreaPixels) {
+                const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels)
+                setLogoPreview(croppedImage)
+                setIsCropping(false)
+            }
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+    const cancelCropping = () => {
+        setIsCropping(false)
+        setImageSrc(null)
     }
 
     const handleSave = () => {
@@ -70,7 +105,7 @@ export default function BrandSettings() {
                                 background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0,
                             }}>
-                                <img src={logoPreview} alt="Logo" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+                                <img src={logoPreview} alt="Logo" style={{ width: 48, height: 48, objectFit: 'contain' }} />
                             </div>
                             <div>
                                 <button className="btn btn-secondary" style={{ fontSize: '0.8rem', marginBottom: 4 }}
@@ -104,7 +139,7 @@ export default function BrandSettings() {
                         color: 'white', minHeight: 160,
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                            <img src={logoPreview} alt="Logo" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+                            <img src={logoPreview} alt="Logo" style={{ width: 28, height: 28, objectFit: 'contain' }} />
                             <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{name}</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -125,12 +160,65 @@ export default function BrandSettings() {
                         background: 'linear-gradient(135deg, #0f172a 0%, #0d9488 100%)',
                         borderRadius: 'var(--radius-lg)', padding: 24, textAlign: 'center',
                     }}>
-                        <img src={logoPreview} alt="Logo" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'brightness(0) invert(1)', marginBottom: 12 }} />
+                        <img src={logoPreview} alt="Logo" style={{ width: 48, height: 48, objectFit: 'contain', marginBottom: 12 }} />
                         <div style={{ color: 'white', fontSize: '1.3rem', fontWeight: 700, marginBottom: 6 }}>{name}</div>
                         <div style={{ color: 'rgba(94,234,212,0.8)', fontSize: '0.85rem', fontStyle: 'italic' }}>{tagline}</div>
                     </div>
                 </div>
             </div>
+
+            {/* Cropping Modal */}
+            {isCropping && imageSrc && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: 'var(--bg-card)', padding: 24, borderRadius: 'var(--radius-lg)',
+                        width: '90%', maxWidth: 600, border: '1px solid var(--border)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                            <h3 style={{ margin: 0 }}>画像の調整・切り抜き (Crop Image)</h3>
+                            <button className="icon-btn" onClick={cancelCropping}>
+                                <X style={{ width: 20, height: 20 }} />
+                            </button>
+                        </div>
+                        <div style={{ position: 'relative', width: '100%', height: 400, background: '#333', borderRadius: 8, overflow: 'hidden', marginBottom: 20 }}>
+                            <Cropper
+                                image={imageSrc}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1} // Square aspect ratio for logos
+                                onCropChange={setCrop}
+                                onCropComplete={handleCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Zoom</span>
+                            <input
+                                type="range"
+                                value={zoom}
+                                min={1}
+                                max={3}
+                                step={0.1}
+                                aria-labelledby="Zoom"
+                                onChange={(e) => {
+                                    setZoom(Number(e.target.value))
+                                }}
+                                style={{ flex: 1 }}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                            <button className="btn btn-secondary" onClick={cancelCropping}>キャンセル (Cancel)</button>
+                            <button className="btn btn-primary" onClick={finishCropping}>
+                                <Check style={{ width: 16, height: 16 }} /> 適用する (Apply)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

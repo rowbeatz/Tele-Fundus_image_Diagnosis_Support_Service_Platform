@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useBrand } from '../../contexts/BrandContext'
 import { useTranslation, LanguageToggle } from '../../lib/i18n'
 import { useFontSize } from '../../contexts/FontSizeContext'
-import { Bell, LogOut, Menu, MessageSquare, Type } from 'lucide-react'
+import { Bell, LogOut, Menu, Type } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 type FontSize = 'small' | 'normal' | 'large'
@@ -12,11 +12,9 @@ const fontSizeTooltips = { small: 'Small text', normal: 'Normal text', large: 'L
 
 interface HeaderProps {
     onMenuToggle: () => void
-    onChatToggle: () => void
-    chatOpen: boolean
 }
 
-export function Header({ onMenuToggle, onChatToggle, chatOpen }: HeaderProps) {
+export function Header({ onMenuToggle }: HeaderProps) {
     const { user, logout } = useAuth()
     const { brand } = useBrand()
     const { t, lang } = useTranslation()
@@ -115,15 +113,6 @@ export function Header({ onMenuToggle, onChatToggle, chatOpen }: HeaderProps) {
                 </div>
 
                 <LanguageToggle />
-
-                {/* Chat Toggle */}
-                <button
-                    className={`header-icon-btn ${chatOpen ? 'active' : ''}`}
-                    onClick={onChatToggle}
-                    title={t('chat.title' as any)}
-                >
-                    <MessageSquare style={{ width: 20, height: 20 }} />
-                </button>
 
                 <button className="header-icon-btn" style={{ position: 'relative' }}>
                     <Bell style={{ width: 20, height: 20 }} />

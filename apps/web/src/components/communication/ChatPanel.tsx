@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../../lib/i18n'
 import { useNavigate } from 'react-router-dom'
-import { MessageSquare, X, Send, Video, Monitor, PhoneOff, Mic, MicOff, Camera, CameraOff, AlertTriangle } from 'lucide-react'
+import { MessageSquare, Send, Video, Monitor, PhoneOff, Mic, MicOff, Camera, CameraOff, AlertTriangle } from 'lucide-react'
 
 interface ChatMessage {
     id: number
@@ -41,7 +41,7 @@ interface ChatPanelProps {
     onClose: () => void
 }
 
-export function ChatPanel({ open, onClose }: ChatPanelProps) {
+export function ChatPanel({ open }: ChatPanelProps) {
     const { t, lang } = useTranslation()
     const navigate = useNavigate()
     const [selectedContact, setSelectedContact] = useState<number | null>(1)
@@ -134,9 +134,6 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
                     <MessageSquare style={{ width: 18, height: 18 }} />
                     <span style={{ fontWeight: 600 }}>{t('chat.title' as any)}</span>
                 </div>
-                <button className="chat-close-btn" onClick={onClose}>
-                    <X style={{ width: 16, height: 16 }} />
-                </button>
             </div>
 
             {/* Inline Video Call */}

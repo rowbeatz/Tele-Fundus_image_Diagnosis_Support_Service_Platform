@@ -6,7 +6,7 @@ import { useTabs } from '../../contexts/TabContext'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { ChatPanel } from '../communication/ChatPanel'
-import { X, Pin } from 'lucide-react'
+import { X, Pin, MessageSquare } from 'lucide-react'
 
 // Map paths to translation keys for tab titles
 const pathToTitleKey: Record<string, string> = {
@@ -100,7 +100,7 @@ export function MainLayout() {
             <Sidebar open={sidebarOpen} onClose={closeSidebar} />
 
             <div className="layout-content" style={{ flex: 1, minWidth: 0 }}>
-                <Header onMenuToggle={toggleSidebar} onChatToggle={toggleChat} chatOpen={chatOpen} />
+                <Header onMenuToggle={toggleSidebar} />
 
                 {/* Tab Bar — only shows pinned tabs */}
                 <div className="tab-bar">
@@ -148,6 +148,18 @@ export function MainLayout() {
 
             {/* Chat Panel — flex sidebar, not overlay */}
             <ChatPanel open={chatOpen} onClose={closeChat} />
+
+            {/* Interactive Chat Edge Handle */}
+            <div
+                className={`chat-edge-handle ${chatOpen ? 'open' : ''}`}
+                onClick={toggleChat}
+                title={chatOpen ? t('chat.close' as any) : t('chat.title' as any)}
+            >
+                <div className="handle-content">
+                    <MessageSquare className="handle-icon" />
+                    {!chatOpen && <span className="handle-dot" />}
+                </div>
+            </div>
         </div>
     )
 }

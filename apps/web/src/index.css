@@ -1176,7 +1176,76 @@ textarea.input-field {
 }
 
 .permission-matrix .category-row td {
-  padding: 6px 16px;
+  padding-left: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHAT EDGE HANDLE
+   ═══════════════════════════════════════════════════════════════ */
+.chat-edge-handle {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s;
+}
+
+.chat-edge-handle:hover {
+  background: var(--teal-50);
+  width: 52px;
+}
+
+.chat-edge-handle.open {
+  transform: translate(-360px, -50%);
+  /* Slide out with the chat panel */
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: none;
+}
+
+.chat-edge-handle .handle-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.chat-edge-handle .handle-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--text-secondary);
+  transition: color 0.3s, transform 0.3s;
+}
+
+.chat-edge-handle.open .handle-icon {
+  color: white;
+  transform: scale(0.9);
+}
+
+.chat-edge-handle .handle-dot {
+  position: absolute;
+  top: 20px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  background: var(--danger);
+  border-radius: 50%;
+  border: 2px solid var(--surface);
 }
 
 /* ═══════════════════════════════════════════════════════════════
