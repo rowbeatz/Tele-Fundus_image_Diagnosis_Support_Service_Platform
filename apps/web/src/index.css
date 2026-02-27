@@ -1185,7 +1185,7 @@ textarea.input-field {
 .viewer-root {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 70px);
+  flex: 1;
   gap: 0;
   overflow: hidden;
 }

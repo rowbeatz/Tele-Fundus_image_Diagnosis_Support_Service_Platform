@@ -105,48 +105,57 @@ export function MainLayout() {
             <div className="layout-content" style={{ flex: 1, minWidth: 0 }}>
                 <Header onMenuToggle={toggleSidebar} />
 
-                {/* Tab Bar — only shows pinned tabs */}
-                <div className="tab-bar">
-                    <div className="tab-bar-inner">
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                className={`tab-item ${activeTabId === tab.id ? 'active' : ''}`}
-                                onClick={() => handleTabClick(tab.id)}
-                            >
-                                <span className={`tab-pin pinned`} title="Pinned">
-                                    <Pin style={{ width: 10, height: 10 }} />
-                                </span>
-                                <span className="tab-title">{tab.title}</span>
-                                <span
-                                    className="tab-close"
-                                    onClick={(e) => handleTabClose(e, tab.id)}
+                {/* Tab Bar — only shows pinned tabs (hidden on viewer) */}
+                {!isViewerPath(location.pathname) && (
+                    <div className="tab-bar">
+                        <div className="tab-bar-inner">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    className={`tab-item ${activeTabId === tab.id ? 'active' : ''}`}
+                                    onClick={() => handleTabClick(tab.id)}
                                 >
-                                    <X style={{ width: 12, height: 12 }} />
-                                </span>
+                                    <span className={`tab-pin pinned`} title="Pinned">
+                                        <Pin style={{ width: 10, height: 10 }} />
+                                    </span>
+                                    <span className="tab-title">{tab.title}</span>
+                                    <span
+                                        className="tab-close"
+                                        onClick={(e) => handleTabClose(e, tab.id)}
+                                    >
+                                        <X style={{ width: 12, height: 12 }} />
+                                    </span>
+                                </button>
+                            ))}
+                            {/* Pin current page button */}
+                            <button
+                                className="tab-item"
+                                onClick={pinCurrentPage}
+                                style={{ opacity: 0.5, fontSize: '0.75rem' }}
+                                title="Pin this page"
+                            >
+                                <Pin style={{ width: 12, height: 12 }} />
+                                <span style={{ fontSize: '0.7rem' }}>Pin</span>
                             </button>
-                        ))}
-                        {/* Pin current page button */}
-                        <button
-                            className="tab-item"
-                            onClick={pinCurrentPage}
-                            style={{ opacity: 0.5, fontSize: '0.75rem' }}
-                            title="Pin this page"
-                        >
-                            <Pin style={{ width: 12, height: 12 }} />
-                            <span style={{ fontSize: '0.7rem' }}>Pin</span>
-                        </button>
+                        </div>
                     </div>
-                </div>
+                )}
 
-                <main style={{
-                    flex: 1, overflowY: 'auto', padding: '24px 28px',
-                    scrollBehavior: 'smooth',
-                }}>
-                    <div style={{ maxWidth: 1280, margin: '0 auto' }} className="animate-page-in">
+                {isViewerPath(location.pathname) ? (
+                    /* Viewer: fullscreen, no scroll, no padding */
+                    <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                         <Outlet />
                     </div>
-                </main>
+                ) : (
+                    <main style={{
+                        flex: 1, overflowY: 'auto', padding: '24px 28px',
+                        scrollBehavior: 'smooth',
+                    }}>
+                        <div style={{ maxWidth: 1280, margin: '0 auto' }} className="animate-page-in">
+                            <Outlet />
+                        </div>
+                    </main>
+                )}
             </div>
 
             {/* Chat Panel — flex sidebar, not overlay (hidden on viewer pages) */}
