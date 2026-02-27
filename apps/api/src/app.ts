@@ -4,6 +4,9 @@ import { importsRouter } from './routes/imports'
 import { createJobsRouter } from './routes/jobs'
 import { createUploadsRouter } from './routes/uploads'
 import { createViewerRoutes } from './routes/viewer'
+import { createViewerDataRoutes } from './routes/viewer-data'
+import { readingReportsRoutes } from './routes/reading-reports'
+import { caseDiscussionsRoutes } from './routes/case-discussions'
 import { deliveryRoutes } from './routes/deliveries'
 import { imageRoutes } from './routes/images'
 import { opsScreeningsRoutes } from './routes/ops-screenings'
@@ -39,11 +42,15 @@ app.route('/ops-readings', opsReadingsRoutes)
 app.route('/accounting', accountingRoutes)
 app.route('/fhir', fhirRoutes)
 app.route('/communication', communicationRoutes)
+app.route('/reading-reports', readingReportsRoutes)
+app.route('/case-discussions', caseDiscussionsRoutes)
 
 
 const bucketName = process.env.AWS_S3_BUCKET || 'tele-fundus-portal-assets'
 const endpoint = process.env.S3_ENDPOINT
-app.route('/viewer', createViewerRoutes(bucketName, process.env.S3_ENDPOINT))
-app.route('/uploads', createUploadsRouter(bucketName, process.env.S3_ENDPOINT))
+app.route('/viewer', createViewerRoutes(bucketName, endpoint))
+app.route('/viewer-data', createViewerDataRoutes(bucketName, endpoint))
+app.route('/uploads', createUploadsRouter(bucketName, endpoint))
 
 export default app
+

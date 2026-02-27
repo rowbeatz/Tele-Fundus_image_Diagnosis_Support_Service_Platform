@@ -201,11 +201,11 @@ export function ReportPanel({ lang, onSubmit }: { lang: string; onSubmit?: () =>
                     </div>
                     <textarea
                         className="form-input"
-                        rows={5}
+                        rows={8}
                         value={reportText}
                         onChange={e => setReportText(e.target.value)}
                         placeholder={lang === 'ja' ? '所見・コメントを記入…' : 'Enter findings and comments…'}
-                        style={{ fontSize: '0.8rem', resize: 'vertical' }}
+                        style={{ fontSize: '0.88rem', resize: 'vertical', width: '100%', boxSizing: 'border-box', minHeight: 140, lineHeight: 1.6 }}
                     />
                 </div>
             </div>
