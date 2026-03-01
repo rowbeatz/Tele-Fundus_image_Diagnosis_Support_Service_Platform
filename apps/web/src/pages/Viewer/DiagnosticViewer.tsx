@@ -16,7 +16,7 @@ import {
     Grid2x2, Columns2, Square, Eye, Ruler,
     Send, MessageCircle, X,
     Link2, ChevronRight, Building2, CheckCircle2,
-    Scan, Layers, Map, Maximize, Cuboid,
+    Scan, Layers, Map, Maximize, Cuboid, SplitSquareHorizontal,
     PanelLeftClose, PanelRightClose, TrendingUp
 } from 'lucide-react'
 
@@ -61,7 +61,7 @@ interface CaseMessage {
     isOwn: boolean
 }
 
-type LayoutMode = '1x1' | '1x2' | '2x2' | 'fundus+oct' | 'enface' | 'octa'
+type LayoutMode = '1x1' | '1x2' | '2x2' | 'fundus+oct' | 'b-scan' | 'enface' | 'octa'
 type ActiveTool = 'pan' | 'measure'
 
 // ─── Mock Data ──────────────────────────────────────────────────
@@ -325,13 +325,13 @@ export default function DiagnosticViewer() {
                             <Maximize style={{ width: 20, height: 20 }} />
                         </button>
                         <button className={`layout-btn ${layout === '1x2' ? 'active' : ''}`} onClick={() => { setLayout('1x2'); setShowOCT(false) }} title="1×2">
-                            <Columns style={{ width: 20, height: 20 }} />
+                            <Columns2 style={{ width: 20, height: 20 }} />
                         </button>
                         <button className={`layout-btn ${layout === '2x2' ? 'active' : ''}`} onClick={() => { setLayout('2x2'); setShowOCT(false) }} title="2×2">
-                            <LayoutGrid style={{ width: 20, height: 20 }} />
+                            <Grid2x2 style={{ width: 20, height: 20 }} />
                         </button>
                         <button className={`layout-btn ${layout === 'fundus+oct' ? 'active' : ''}`} onClick={() => { setLayout('fundus+oct'); setShowOCT(true) }} title="Fundus+OCT">
-                            <SplitSquareVertical style={{ width: 20, height: 20 }} />
+                            <SplitSquareHorizontal style={{ width: 20, height: 20 }} />
                         </button>
                         <button className={`layout-btn ${layout === 'b-scan' ? 'active' : ''}`} onClick={() => { setLayout('b-scan'); setShowOCT(false) }} title="B-Scan">
                             <Scan style={{ width: 20, height: 20 }} />
@@ -536,83 +536,90 @@ export default function DiagnosticViewer() {
                     </button>
                 )}
             </div>
-            )
+        </div >
+    )
 }
 
-            // ═══════════════════════════════════════════════════════════════
-            // VIEWER PANE — individual image viewing pane
-            // ═══════════════════════════════════════════════════════════════
-            function ViewerPane({image, images, selectedIndex, onSelectImage, brightness, contrast, invert, activeTool, syncTransform, onTransformChange, lang, showScanLine, scanPosition, onScanPositionChange, showThicknessMap}: {
-                image: ViewerImage
-            images: ViewerImage[]
-            selectedIndex: number
-    onSelectImage: (i: number) => void
-            brightness: number
-            contrast: number
-            invert: boolean
-            activeTool: ActiveTool
-            syncTransform?: {x: number; y: number; scale: number }
-    onTransformChange?: (x: number, y: number, scale: number) => void
-            lang: string
-            t?: any
-            showScanLine?: boolean
-            scanPosition?: number
-    onScanPositionChange?: (pos: number) => void
-            showThicknessMap?: boolean
-}) {
+// ═══════════════════════════════════════════════════════════════
+// VIEWER PANE — individual image viewing pane
+// ═══════════════════════════════════════════════════════════════
+interface ViewerPaneProps {
+    image: { id: string; url: string; eyeSide: 'left' | 'right'; capturedAt: string; modality: 'fundus' | 'oct'; annotationsJson?: unknown };
+    images: { id: string; url: string; eyeSide: 'left' | 'right'; capturedAt: string; modality: 'fundus' | 'oct'; annotationsJson?: unknown }[];
+    selectedIndex: number;
+    onSelectImage: (i: number) => void;
+    brightness: number;
+    contrast: number;
+    invert: boolean;
+    activeTool: 'pan' | 'measure';
+    syncTransform: { x: number; y: number; scale: number } | null;
+    onTransformChange: (t: { x: number; y: number; scale: number }) => void;
+    lang: string;
+    showScanLine?: boolean;
+    scanPosition?: number;
+    onScanPositionChange?: (p: number) => void;
+    showThicknessMap?: boolean;
+}
+
+function ViewerPane({
+    image, images, selectedIndex, onSelectImage,
+    brightness, contrast, invert, activeTool,
+    syncTransform, onTransformChange, lang,
+    showScanLine, scanPosition, onScanPositionChange, showThicknessMap
+}: ViewerPaneProps) {
     return (
-            <div className="viewer-pane">
-                <FundusCanvas
-                    imageUrl={image.url}
-                    brightness={brightness}
-                    contrast={contrast}
-                    invert={invert}
-                    externalPan={syncTransform ? { x: syncTransform.x, y: syncTransform.y } : undefined}
-                    externalScale={syncTransform?.scale}
-                    onTransformChange={onTransformChange}
+        <div className="viewer-pane">
+            <FundusCanvas
+                imageUrl={image.url}
+                brightness={brightness}
+                contrast={contrast}
+                invert={invert}
+                externalPan={syncTransform ? { x: syncTransform.x, y: syncTransform.y } : undefined}
+                externalScale={syncTransform?.scale}
+                onTransformChange={onTransformChange}
+            />
+            {/* Measurement Overlay */}
+            <MeasureTool
+                active={activeTool === 'measure'}
+                canvasWidth={800}
+                canvasHeight={600}
+                lang={lang}
+            />
+            {/* Scan Line Overlay (fundus → OCT sync) */}
+            {showScanLine && scanPosition !== undefined && onScanPositionChange && (
+                <ScanLineOverlay
+                    position={scanPosition}
+                    onPositionChange={onScanPositionChange}
+                    visible={true}
                 />
-                {/* Measurement Overlay */}
-                <MeasureTool
-                    active={activeTool === 'measure'}
-                    canvasWidth={800}
-                    canvasHeight={600}
-                    lang={lang}
-                />
-                {/* Scan Line Overlay (fundus → OCT sync) */}
-                {showScanLine && scanPosition !== undefined && onScanPositionChange && (
-                    <ScanLineOverlay
-                        position={scanPosition}
-                        onPositionChange={onScanPositionChange}
-                        visible={true}
-                    />
-                )}
-                {/* Thickness Map (ETDRS grid) */}
-                <ThicknessMap visible={showThicknessMap || false} lang={lang} />
-                {/* Eye badge */}
-                <div className="viewer-eye-badge" style={{ background: image.eyeSide === 'right' ? 'rgba(59,130,246,0.8)' : 'rgba(239,68,68,0.8)' }}>
-                    {image.eyeSide === 'right' ? (lang === 'ja' ? '右眼 OD' : 'RIGHT OD') : (lang === 'ja' ? '左眼 OS' : 'LEFT OS')}
-                </div>
-                {/* Modality label */}
-                <div className="viewer-modality-badge">
-                    {image.modality.toUpperCase()}
-                </div>
-                {/* Capture time */}
-                <div className="viewer-capture-time">{image.capturedAt}</div>
-                {/* Thumbnails */}
-                <div className="viewer-thumbnails">
-                    {images.map((img, i) => (
-                        <button key={img.id} onClick={() => onSelectImage(i)} className={`viewer-thumb ${i === selectedIndex ? 'active' : ''}`}>
-                            <img src={img.url} alt={img.eyeSide} />
-                            <span className="thumb-label">{img.eyeSide === 'right' ? 'R' : 'L'}</span>
-                        </button>
-                    ))}
-                </div>
-                {/* Tool hint */}
-                <div className="viewer-hint">
-                    {activeTool === 'measure'
-                        ? (lang === 'ja' ? 'クリックして計測（2点）' : 'Click to measure (2 points)')
-                        : (lang === 'ja' ? 'ドラッグで移動・ホイールでズーム' : 'Drag to pan, scroll to zoom')}
-                </div>
+            )}
+            {/* Thickness Map (ETDRS grid) */}
+            <ThicknessMap visible={showThicknessMap || false} lang={lang} />
+            {/* Eye badge */}
+            <div className="viewer-eye-badge" style={{ background: image.eyeSide === 'right' ? 'rgba(59,130,246,0.8)' : 'rgba(239,68,68,0.8)' }}>
+                {image.eyeSide === 'right' ? (lang === 'ja' ? '右眼 OD' : 'RIGHT OD') : (lang === 'ja' ? '左眼 OS' : 'LEFT OS')}
             </div>
-            )
+            {/* Modality label */}
+            <div className="viewer-modality-badge">
+                {image.modality.toUpperCase()}
+            </div>
+            {/* Capture time */}
+            <div className="viewer-capture-time">{image.capturedAt}</div>
+            {/* Thumbnails */}
+            <div className="viewer-thumbnails">
+                {images.map((img, i) => (
+                    <button key={img.id} onClick={() => onSelectImage(i)} className={`viewer-thumb ${i === selectedIndex ? 'active' : ''}`}>
+                        <img src={img.url} alt={img.eyeSide} />
+                        <span className="thumb-label">{img.eyeSide === 'right' ? 'R' : 'L'}</span>
+                    </button>
+                ))}
+            </div>
+            {/* Tool hint */}
+            <div className="viewer-hint">
+                {activeTool === 'measure'
+                    ? (lang === 'ja' ? 'クリックして計測（2点）' : 'Click to measure (2 points)')
+                    : (lang === 'ja' ? 'ドラッグで移動・ホイールでズーム' : 'Drag to pan, scroll to zoom')}
+            </div>
+        </div>
+    )
 }
