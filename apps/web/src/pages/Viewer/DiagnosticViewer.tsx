@@ -112,7 +112,7 @@ export default function DiagnosticViewer() {
     const [images, setImages] = useState<ViewerImage[]>([])
     const [currentIndex, setCurrentIndex] = useState(0)
     const [secondIndex, setSecondIndex] = useState(1)
-    const [patient, setPatient] = useState<PatientInfo>(mockPatient)
+    const [patient, setPatient] = useState<PatientInfo | null>(null)
     const [brightness, setBrightness] = useState(100)
     const [contrast, setContrast] = useState(100)
     const [invert, setInvert] = useState(false)
@@ -129,6 +129,33 @@ export default function DiagnosticViewer() {
     const [showChatPopup, setShowChatPopup] = useState(false)
     const [chatMessages, setChatMessages] = useState<CaseMessage[]>(initialCaseMessages)
     const [chatInput, setChatInput] = useState('')
+
+    // Draggable chat FAB
+    const [fabPos, setFabPos] = useState({ x: 0, y: 0 })
+    const [fabDragging, setFabDragging] = useState(false)
+    const [fabDragStart, setFabDragStart] = useState({ x: 0, y: 0, startX: 0, startY: 0 })
+    const [fabMoved, setFabMoved] = useState(false)
+
+    // Document-level drag events for smooth FAB dragging
+    useEffect(() => {
+        if (!fabDragging) return
+        const onMove = (e: MouseEvent) => {
+            const dx = e.clientX - fabDragStart.x
+            const dy = e.clientY - fabDragStart.y
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) setFabMoved(true)
+            setFabPos({ x: fabDragStart.startX + dx, y: fabDragStart.startY + dy })
+        }
+        const onUp = () => {
+            setFabDragging(false)
+            if (!fabMoved) setShowChatPopup(true)
+        }
+        document.addEventListener('mousemove', onMove)
+        document.addEventListener('mouseup', onUp)
+        return () => {
+            document.removeEventListener('mousemove', onMove)
+            document.removeEventListener('mouseup', onUp)
+        }
+    }, [fabDragging, fabDragStart, fabMoved])
 
     // Reading queue
     const [readingQueue, setReadingQueue] = useState<ReadingCase[]>(mockReadingQueue)
@@ -152,8 +179,12 @@ export default function DiagnosticViewer() {
                 setApiReady(true)
                 setFullData(viewerData)
 
+                // Always set patient from API data
+                const patientId = viewerData.patient.id || ''
+                // Try to find a matching patient ID in the mock reading queue to get display ID
+                const matchedQueue = mockReadingQueue.find(q => q.screeningId === screeningId)
                 setPatient({
-                    patientId: viewerData.patient.id || '',
+                    patientId: matchedQueue?.patientId || patientId,
                     name: viewerData.patient.name || '',
                     nameKana: '',
                     age: viewerData.patient.age || 0,
@@ -202,8 +233,73 @@ export default function DiagnosticViewer() {
                     })))
                 } catch { /* use mock queue */ }
             } catch {
-                // API not available — use mock data
-                if (!cancelled) setImages(mockImages)
+                // API not available — build minimal data from reading queue
+                if (!cancelled) {
+                    const matchedQueue = mockReadingQueue.find(q => q.screeningId === screeningId)
+                    if (matchedQueue) {
+                        setPatient({
+                            patientId: matchedQueue.patientId,
+                            name: matchedQueue.patientName,
+                            nameKana: '',
+                            age: matchedQueue.age,
+                            dob: '',
+                            sex: matchedQueue.sex,
+                            referralFacility: matchedQueue.referralFacility,
+                            referralDoctor: '',
+                            organization: matchedQueue.referralFacility,
+                        })
+                        // Build a minimal ViewerData for ClinicalInfoPanel
+                        setFullData({
+                            screening: {
+                                id: matchedQueue.screeningId,
+                                date: '',
+                                status: matchedQueue.status,
+                                urgencyFlag: false,
+                                chiefComplaint: null,
+                                symptoms: [],
+                                currentMedications: [],
+                                ophthalmicExam: null,
+                                hba1c: null,
+                                referringPhysician: null,
+                                bpSystolic: null,
+                                bpDiastolic: null,
+                                hasDiabetes: null,
+                                hasHypertension: null,
+                                hasDyslipidemia: null,
+                                smokingStatus: null,
+                                specialNotes: null,
+                            },
+                            patient: {
+                                id: matchedQueue.patientId,
+                                name: matchedQueue.patientName,
+                                sex: matchedQueue.sex,
+                                birthDate: null,
+                                age: matchedQueue.age,
+                                ethnicity: null,
+                                bloodType: null,
+                                allergies: [],
+                                medicalHistory: [],
+                                ocularHistory: [],
+                                familyHistory: [],
+                            },
+                            referral: {
+                                facility: matchedQueue.referralFacility,
+                                phone: null,
+                                doctor: null,
+                            },
+                            images: [],
+                            reading: null,
+                            report: null,
+                        })
+                    } else {
+                        setPatient(mockPatient)
+                    }
+                    // Only show mock images for the first screening (田中太郎)
+                    if (screeningId === 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee') {
+                        setImages(mockImages)
+                    }
+                    // Otherwise images stays empty, showing "no images" UI
+                }
             }
         }
         loadData()
@@ -274,7 +370,8 @@ export default function DiagnosticViewer() {
     }, [syncPan])
 
     // ─── Render ─────────────────────────────────────
-    if (images.length === 0) return (
+    // Show loading spinner only if patient is also not loaded yet
+    if (!patient) return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 80px)' }}>
             <div style={{ width: 32, height: 32, border: '3px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%' }} className="animate-spin" />
         </div>
@@ -389,41 +486,48 @@ export default function DiagnosticViewer() {
                 {/* CENTER: viewer */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
                     {/* Viewer Panes */}
-                    <div className={`viewer-panes layout-${layout === 'fundus+oct' ? '1x2' : layout}`} style={{ flex: 1 }}>
-                        <ViewerPane
-                            image={currentImage}
-                            images={images}
-                            selectedIndex={currentIndex}
-                            onSelectImage={setCurrentIndex}
-                            brightness={brightness}
-                            contrast={contrast}
-                            invert={invert}
-                            activeTool={activeTool}
-                            syncTransform={layout !== '1x1' && layout !== 'fundus+oct' ? syncTransform : undefined}
-                            onTransformChange={handleTransformChange}
-                            lang={lang}
-                            showScanLine={showOCT}
-                            scanPosition={scanPosition}
-                            onScanPositionChange={setScanPosition}
-                            showThicknessMap={showThicknessMap}
-                        />
-                        {layout === 'fundus+oct' && (
-                            <div className="viewer-pane oct-pane">
-                                <OCTViewer scanPosition={scanPosition} onScanPositionChange={setScanPosition} brightness={brightness} contrast={contrast} invert={invert} lang={lang} />
-                            </div>
-                        )}
-                        {(layout === '1x2' || layout === '2x2') && (
-                            <ViewerPane image={secondImage} images={images} selectedIndex={secondIndex} onSelectImage={setSecondIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} syncTransform={syncPan ? syncTransform : undefined} onTransformChange={handleTransformChange} lang={lang} />
-                        )}
-                        {layout === '2x2' && (
-                            <>
-                                <ViewerPane image={images[2] || images[0]} images={images} selectedIndex={2} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} />
-                                <ViewerPane image={images[3] || images[1]} images={images} selectedIndex={3} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} />
-                            </>
-                        )}
-                        {layout === 'enface' && (<div className="viewer-pane" style={{ padding: 16 }}><EnFaceViewer lang={lang} /></div>)}
-                        {layout === 'octa' && (<div className="viewer-pane" style={{ padding: 16 }}><OCTAViewer lang={lang} /></div>)}
-                    </div>
+                    {images.length === 0 ? (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, color: 'var(--text-muted)' }}>
+                            <Eye style={{ width: 48, height: 48, opacity: 0.3 }} />
+                            <p style={{ fontSize: '1rem' }}>{lang === 'ja' ? 'この検査には画像がありません' : 'No images available for this screening'}</p>
+                        </div>
+                    ) : (
+                        <div className={`viewer-panes layout-${layout === 'fundus+oct' ? '1x2' : layout}`} style={{ flex: 1 }}>
+                            <ViewerPane
+                                image={currentImage}
+                                images={images}
+                                selectedIndex={currentIndex}
+                                onSelectImage={setCurrentIndex}
+                                brightness={brightness}
+                                contrast={contrast}
+                                invert={invert}
+                                activeTool={activeTool}
+                                syncTransform={layout !== '1x1' && layout !== 'fundus+oct' ? syncTransform : undefined}
+                                onTransformChange={handleTransformChange}
+                                lang={lang}
+                                showScanLine={showOCT}
+                                scanPosition={scanPosition}
+                                onScanPositionChange={setScanPosition}
+                                showThicknessMap={showThicknessMap}
+                            />
+                            {layout === 'fundus+oct' && (
+                                <div className="viewer-pane oct-pane">
+                                    <OCTViewer scanPosition={scanPosition} onScanPositionChange={setScanPosition} brightness={brightness} contrast={contrast} invert={invert} lang={lang} />
+                                </div>
+                            )}
+                            {(layout === '1x2' || layout === '2x2') && (
+                                <ViewerPane image={secondImage} images={images} selectedIndex={secondIndex} onSelectImage={setSecondIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} syncTransform={syncPan ? syncTransform : undefined} onTransformChange={handleTransformChange} lang={lang} />
+                            )}
+                            {layout === '2x2' && (
+                                <>
+                                    <ViewerPane image={images[2] || images[0]} images={images} selectedIndex={2} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} />
+                                    <ViewerPane image={images[3] || images[1]} images={images} selectedIndex={3} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} />
+                                </>
+                            )}
+                            {layout === 'enface' && (<div className="viewer-pane" style={{ padding: 16 }}><EnFaceViewer lang={lang} /></div>)}
+                            {layout === 'octa' && (<div className="viewer-pane" style={{ padding: 16 }}><OCTAViewer lang={lang} /></div>)}
+                        </div>
+                    )}
 
                     {/* ═══ Tools Strip ═══ */}
                     <div style={{
@@ -525,27 +629,46 @@ export default function DiagnosticViewer() {
                 </div>
             )}
 
-            {/* Chat FAB */}
+            {/* Chat FAB — draggable */}
             {!showChatPopup && (
                 <button
-                    onClick={() => setShowChatPopup(true)}
+                    onMouseDown={(e) => {
+                        setFabDragging(true)
+                        setFabMoved(false)
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setFabDragStart({
+                            x: e.clientX, y: e.clientY,
+                            startX: rect.left, startY: rect.top,
+                        })
+                        // Switch to absolute top/left positioning on first drag
+                        if (fabPos.x === 0 && fabPos.y === 0) {
+                            setFabPos({ x: rect.left, y: rect.top })
+                        }
+                        e.preventDefault()
+                    }}
                     style={{
-                        position: 'fixed', bottom: 16, right: showRightPanel ? 320 : 16,
+                        position: 'fixed',
+                        ...(fabPos.x === 0 && fabPos.y === 0
+                            ? { bottom: 80, right: showRightPanel ? 320 : 16 }
+                            : { top: fabPos.y, left: fabPos.x }),
                         width: 48, height: 48, borderRadius: '50%', zIndex: 999,
                         background: 'var(--primary)', color: 'white', border: 'none',
-                        cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                        cursor: fabDragging ? 'grabbing' : 'grab',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'all 0.2s',
+                        transition: fabDragging ? 'none' : 'box-shadow 0.2s',
+                        userSelect: 'none',
                     }}
-                    title={lang === 'ja' ? 'ケースディスカッション' : 'Case Discussion'}
+                    title={lang === 'ja' ? 'ケースディスカッション（ドラッグで移動可）' : 'Case Discussion (drag to move)'}
                 >
-                    <MessageCircle style={{ width: 20, height: 20 }} />
+                    <MessageCircle style={{ width: 20, height: 20, pointerEvents: 'none' }} />
                     {chatMessages.length > 0 && (
                         <span style={{
                             position: 'absolute', top: -2, right: -2,
                             width: 18, height: 18, borderRadius: '50%',
                             background: '#ef4444', color: 'white', fontSize: '0.6rem',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
+                            pointerEvents: 'none',
                         }}>{chatMessages.length}</span>
                     )}
                 </button>
