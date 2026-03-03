@@ -65,22 +65,7 @@ type LayoutMode = '1x1' | '1x2' | '2x2' | 'fundus+oct' | 'b-scan' | 'enface' | '
 type ActiveTool = 'pan' | 'measure'
 
 // ─── Mock Data (aligned with PostgreSQL seed data) ──────────
-const mockPatient: PatientInfo = {
-    patientId: 'EX-10001',
-    name: '田中 太郎',
-    nameKana: 'タナカ タロウ',
-    age: 60,
-    dob: '1965-03-15',
-    sex: 'M',
-    referralFacility: 'さくら眼科クリニック',
-    referralDoctor: '小林 直樹',
-    organization: 'さくら眼科クリニック',
-}
-
-const mockImages: ViewerImage[] = [
-    { id: 'ffff1111-ffff-ffff-ffff-ffffffffffff', url: '/demo/fundus_right_01.png', eyeSide: 'right', capturedAt: '2026-02-20 09:00', modality: 'fundus', annotationsJson: null },
-    { id: 'ffff2222-ffff-ffff-ffff-ffffffffffff', url: '/demo/fundus_left_01.png', eyeSide: 'left', capturedAt: '2026-02-20 09:05', modality: 'fundus', annotationsJson: null },
-]
+// Removed mockPatient and mockImages which are no longer necessary.
 
 // ─── Reading Queue (aligned with seed screenings) ───────────
 const mockReadingQueue: ReadingCase[] = [
@@ -130,24 +115,44 @@ export default function DiagnosticViewer() {
     const [chatMessages, setChatMessages] = useState<CaseMessage[]>(initialCaseMessages)
     const [chatInput, setChatInput] = useState('')
 
-    // Draggable chat FAB
-    const [fabPos, setFabPos] = useState({ x: 0, y: 0 })
-    const [fabDragging, setFabDragging] = useState(false)
-    const [fabDragStart, setFabDragStart] = useState({ x: 0, y: 0, startX: 0, startY: 0 })
-    const [fabMoved, setFabMoved] = useState(false)
+    // Draggable chat FAB (persist position)
+    const [fabPos, setFabPos] = useState<{ x: number, y: number }>(() => {
+        try {
+            const saved = localStorage.getItem('viewerFabPos')
+            return saved ? JSON.parse(saved) : { x: 0, y: 0 }
+        } catch { return { x: 0, y: 0 } }
+    })
 
-    // Document-level drag events for smooth FAB dragging
+    const dragRef = useRef({ isDragging: false, hasMoved: false, startX: 0, startY: 0, initialElemX: 0, initialElemY: 0, currentX: fabPos.x, currentY: fabPos.y })
+
+    // Document-level drag events
     useEffect(() => {
-        if (!fabDragging) return
         const onMove = (e: MouseEvent) => {
-            const dx = e.clientX - fabDragStart.x
-            const dy = e.clientY - fabDragStart.y
-            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) setFabMoved(true)
-            setFabPos({ x: fabDragStart.startX + dx, y: fabDragStart.startY + dy })
+            if (!dragRef.current.isDragging) return
+            const dx = e.clientX - dragRef.current.startX
+            const dy = e.clientY - dragRef.current.startY
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragRef.current.hasMoved = true
+
+            const newPos = {
+                x: dragRef.current.initialElemX + dx,
+                y: dragRef.current.initialElemY + dy
+            }
+            dragRef.current.currentX = newPos.x
+            dragRef.current.currentY = newPos.y
+            setFabPos(newPos) // Update visual
         }
         const onUp = () => {
-            setFabDragging(false)
-            if (!fabMoved) setShowChatPopup(true)
+            if (!dragRef.current.isDragging) return
+            dragRef.current.isDragging = false
+
+            if (!dragRef.current.hasMoved) {
+                setShowChatPopup(true)
+            } else {
+                localStorage.setItem('viewerFabPos', JSON.stringify({
+                    x: dragRef.current.currentX,
+                    y: dragRef.current.currentY
+                }))
+            }
         }
         document.addEventListener('mousemove', onMove)
         document.addEventListener('mouseup', onUp)
@@ -155,7 +160,7 @@ export default function DiagnosticViewer() {
             document.removeEventListener('mousemove', onMove)
             document.removeEventListener('mouseup', onUp)
         }
-    }, [fabDragging, fabDragStart, fabMoved])
+    }, [])
 
     // Reading queue
     const [readingQueue, setReadingQueue] = useState<ReadingCase[]>(mockReadingQueue)
@@ -232,74 +237,9 @@ export default function DiagnosticViewer() {
                         status: q.status === 'draft' ? 'pending' as const : q.status === 'in_progress' ? 'in-progress' as const : 'completed' as const,
                     })))
                 } catch { /* use mock queue */ }
-            } catch {
-                // API not available — build minimal data from reading queue
-                if (!cancelled) {
-                    const matchedQueue = mockReadingQueue.find(q => q.screeningId === screeningId)
-                    if (matchedQueue) {
-                        setPatient({
-                            patientId: matchedQueue.patientId,
-                            name: matchedQueue.patientName,
-                            nameKana: '',
-                            age: matchedQueue.age,
-                            dob: '',
-                            sex: matchedQueue.sex,
-                            referralFacility: matchedQueue.referralFacility,
-                            referralDoctor: '',
-                            organization: matchedQueue.referralFacility,
-                        })
-                        // Build a minimal ViewerData for ClinicalInfoPanel
-                        setFullData({
-                            screening: {
-                                id: matchedQueue.screeningId,
-                                date: '',
-                                status: matchedQueue.status,
-                                urgencyFlag: false,
-                                chiefComplaint: null,
-                                symptoms: [],
-                                currentMedications: [],
-                                ophthalmicExam: null,
-                                hba1c: null,
-                                referringPhysician: null,
-                                bpSystolic: null,
-                                bpDiastolic: null,
-                                hasDiabetes: null,
-                                hasHypertension: null,
-                                hasDyslipidemia: null,
-                                smokingStatus: null,
-                                specialNotes: null,
-                            },
-                            patient: {
-                                id: matchedQueue.patientId,
-                                name: matchedQueue.patientName,
-                                sex: matchedQueue.sex,
-                                birthDate: null,
-                                age: matchedQueue.age,
-                                ethnicity: null,
-                                bloodType: null,
-                                allergies: [],
-                                medicalHistory: [],
-                                ocularHistory: [],
-                                familyHistory: [],
-                            },
-                            referral: {
-                                facility: matchedQueue.referralFacility,
-                                phone: null,
-                                doctor: null,
-                            },
-                            images: [],
-                            reading: null,
-                            report: null,
-                        })
-                    } else {
-                        setPatient(mockPatient)
-                    }
-                    // Only show mock images for the first screening (田中太郎)
-                    if (screeningId === 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee') {
-                        setImages(mockImages)
-                    }
-                    // Otherwise images stays empty, showing "no images" UI
-                }
+            } catch (err) {
+                console.error('Failed to load viewer data:', err)
+                // Real DB is fully seeded, no longer using mock fallback
             }
         }
         loadData()
@@ -588,7 +528,14 @@ export default function DiagnosticViewer() {
             {/* ═══ Floating Case Discussion Chat ═══ */}
             {showChatPopup && (
                 <div style={{
-                    position: 'fixed', bottom: 16, right: showRightPanel ? 320 : 16,
+                    position: 'fixed',
+                    ...((fabPos.x !== 0 || fabPos.y !== 0) ? {
+                        top: Math.min(Math.max(16, fabPos.y - 420), window.innerHeight - 436),
+                        left: Math.min(Math.max(16, fabPos.x - 340 + 56), window.innerWidth - 356)
+                    } : {
+                        bottom: 80,
+                        right: showRightPanel ? 320 : 16,
+                    }),
                     width: 340, height: 420, zIndex: 1000,
                     background: 'var(--bg-card)', border: '1px solid var(--border)',
                     borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
@@ -633,14 +580,15 @@ export default function DiagnosticViewer() {
             {!showChatPopup && (
                 <button
                     onMouseDown={(e) => {
-                        setFabDragging(true)
-                        setFabMoved(false)
                         const rect = e.currentTarget.getBoundingClientRect()
-                        setFabDragStart({
-                            x: e.clientX, y: e.clientY,
-                            startX: rect.left, startY: rect.top,
-                        })
-                        // Switch to absolute top/left positioning on first drag
+                        dragRef.current = {
+                            isDragging: true,
+                            hasMoved: false,
+                            startX: e.clientX,
+                            startY: e.clientY,
+                            initialElemX: fabPos.x === 0 && fabPos.y === 0 ? rect.left : fabPos.x,
+                            initialElemY: fabPos.x === 0 && fabPos.y === 0 ? rect.top : fabPos.y,
+                        }
                         if (fabPos.x === 0 && fabPos.y === 0) {
                             setFabPos({ x: rect.left, y: rect.top })
                         }
@@ -653,15 +601,14 @@ export default function DiagnosticViewer() {
                             : { top: fabPos.y, left: fabPos.x }),
                         width: 48, height: 48, borderRadius: '50%', zIndex: 999,
                         background: 'var(--primary)', color: 'white', border: 'none',
-                        cursor: fabDragging ? 'grabbing' : 'grab',
+                        cursor: 'grab',
                         boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: fabDragging ? 'none' : 'box-shadow 0.2s',
+                        transition: dragRef.current?.isDragging ? 'none' : 'box-shadow 0.2s',
                         userSelect: 'none',
                     }}
-                    title={lang === 'ja' ? 'ケースディスカッション（ドラッグで移動可）' : 'Case Discussion (drag to move)'}
                 >
-                    <MessageCircle style={{ width: 20, height: 20, pointerEvents: 'none' }} />
+                    <MessageCircle style={{ width: 24, height: 24 }} />
                     {chatMessages.length > 0 && (
                         <span style={{
                             position: 'absolute', top: -2, right: -2,
