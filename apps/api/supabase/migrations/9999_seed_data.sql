@@ -144,7 +144,7 @@ ON CONFLICT DO NOTHING;
 -- ═══ Examinees ═══
 INSERT INTO examinees (id, organization_id, external_examinee_id, display_name, sex, birth_date, age)
 VALUES
-  ('cccc1111-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111', 'EX-10001', '田中 太郎', 'male', '1965-03-15', 61),
+  ('cccc1111-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111', 'EX-10001', '田中 太郎', 'male', '1965-03-15', 60),
   ('cccc2222-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111', 'EX-10002', '鈴木 花子', 'female', '1972-07-22', 53),
   ('cccc3333-cccc-cccc-cccc-cccccccccccc', '22222222-2222-2222-2222-222222222222', 'EX-20001', '佐藤 健一', 'male', '1958-11-03', 67),
   ('cccc4444-cccc-cccc-cccc-cccccccccccc', '22222222-2222-2222-2222-222222222222', 'EX-20002', '山田 美咲', 'female', '1980-01-30', 46),

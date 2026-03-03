@@ -64,35 +64,35 @@ interface CaseMessage {
 type LayoutMode = '1x1' | '1x2' | '2x2' | 'fundus+oct' | 'b-scan' | 'enface' | 'octa'
 type ActiveTool = 'pan' | 'measure'
 
-// ─── Mock Data ──────────────────────────────────────────────────
+// ─── Mock Data (aligned with PostgreSQL seed data) ──────────
 const mockPatient: PatientInfo = {
-    patientId: 'PT-20260001',
+    patientId: 'EX-10001',
     name: '田中 太郎',
     nameKana: 'タナカ タロウ',
-    age: 68,
-    dob: '1958-03-15',
+    age: 60,
+    dob: '1965-03-15',
     sex: 'M',
     referralFacility: 'さくら眼科クリニック',
-    referralDoctor: '佐藤 一郎',
-    organization: '東京中央病院',
+    referralDoctor: '小林 直樹',
+    organization: 'さくら眼科クリニック',
 }
 
 const mockImages: ViewerImage[] = [
-    { id: 'demo-1', url: '/demo/fundus_right_01.png', eyeSide: 'right', capturedAt: '2026-02-26 10:32', modality: 'fundus', annotationsJson: null },
-    { id: 'demo-2', url: '/demo/fundus_left_01.png', eyeSide: 'left', capturedAt: '2026-02-26 10:33', modality: 'fundus', annotationsJson: null },
-    { id: 'demo-3', url: '/demo/fundus_right_02.png', eyeSide: 'right', capturedAt: '2026-02-26 10:34', modality: 'fundus', annotationsJson: null },
-    { id: 'demo-4', url: '/demo/fundus_left_02.png', eyeSide: 'left', capturedAt: '2026-02-26 10:35', modality: 'fundus', annotationsJson: null },
+    { id: 'ffff1111-ffff-ffff-ffff-ffffffffffff', url: '/demo/fundus_right_01.png', eyeSide: 'right', capturedAt: '2026-02-20 09:00', modality: 'fundus', annotationsJson: null },
+    { id: 'ffff2222-ffff-ffff-ffff-ffffffffffff', url: '/demo/fundus_left_01.png', eyeSide: 'left', capturedAt: '2026-02-20 09:05', modality: 'fundus', annotationsJson: null },
 ]
 
-// ─── Reading Queue (mock: assigned cases for this reader) ───────
+// ─── Reading Queue (aligned with seed screenings) ───────────
 const mockReadingQueue: ReadingCase[] = [
-    { screeningId: 'SCR-001', patientId: 'PT-20260001', patientName: '田中 太郎', age: 68, sex: 'M', referralFacility: 'さくら眼科クリニック', imageCount: 4, status: 'in-progress' },
-    { screeningId: 'SCR-002', patientId: 'PT-20260002', patientName: '鈴木 花子', age: 53, sex: 'F', referralFacility: '東京中央病院', imageCount: 2, status: 'pending' },
-    { screeningId: 'SCR-003', patientId: 'PT-20260003', patientName: '佐藤 健一', age: 80, sex: 'M', referralFacility: 'さくら眼科クリニック', imageCount: 6, status: 'pending' },
-    { screeningId: 'SCR-004', patientId: 'PT-20260004', patientName: '山田 美咲', age: 37, sex: 'F', referralFacility: '大阪総合医療センター', imageCount: 2, status: 'pending' },
-    { screeningId: 'SCR-005', patientId: 'PT-20260005', patientName: '高橋 翔太', age: 60, sex: 'M', referralFacility: '東京中央病院', imageCount: 4, status: 'completed' },
-    { screeningId: 'SCR-006', patientId: 'PT-20260006', patientName: '伊藤 真理', age: 75, sex: 'F', referralFacility: 'さくら眼科クリニック', imageCount: 4, status: 'pending' },
-    { screeningId: 'SCR-007', patientId: 'PT-20260007', patientName: '渡辺 大輔', age: 47, sex: 'M', referralFacility: '大阪総合医療センター', imageCount: 2, status: 'pending' },
+    { screeningId: 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-10001', patientName: '田中 太郎', age: 60, sex: 'M', referralFacility: 'さくら眼科クリニック', imageCount: 2, status: 'in-progress' },
+    { screeningId: 'eeee2222-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-10002', patientName: '鈴木 花子', age: 53, sex: 'F', referralFacility: 'さくら眼科クリニック', imageCount: 0, status: 'pending' },
+    { screeningId: 'eeee3333-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-10003', patientName: '伊藤 美穂', age: 70, sex: 'F', referralFacility: 'さくら眼科クリニック', imageCount: 0, status: 'pending' },
+    { screeningId: 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-20001', patientName: '佐藤 健一', age: 67, sex: 'M', referralFacility: '東京中央病院', imageCount: 2, status: 'completed' },
+    { screeningId: 'eeee5555-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-20002', patientName: '山田 美咲', age: 46, sex: 'F', referralFacility: '東京中央病院', imageCount: 0, status: 'pending' },
+    { screeningId: 'eeee6666-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-20003', patientName: '渡辺 大輔', age: 77, sex: 'M', referralFacility: '東京中央病院', imageCount: 0, status: 'pending' },
+    { screeningId: 'eeee7777-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-30001', patientName: '高橋 翔太', age: 35, sex: 'M', referralFacility: '大阪総合医療センター', imageCount: 0, status: 'pending' },
+    { screeningId: 'eeee9999-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-30003', patientName: '小林 誠', age: 50, sex: 'M', referralFacility: '大阪総合医療センター', imageCount: 0, status: 'pending' },
+    { screeningId: 'eeee0000-eeee-eeee-eeee-eeeeeeeeeeee', patientId: 'EX-10004', patientName: '加藤 さくら', age: 64, sex: 'F', referralFacility: 'さくら眼科クリニック', imageCount: 0, status: 'pending' },
 ]
 
 const initialCaseMessages: CaseMessage[] = [
@@ -115,7 +115,7 @@ export default function DiagnosticViewer() {
     const [brightness, setBrightness] = useState(100)
     const [contrast, setContrast] = useState(100)
     const [invert, setInvert] = useState(false)
-    const [isSaving, setIsSaving] = useState(false)
+    const [, setIsSaving] = useState(false)
     const [layout, setLayout] = useState<LayoutMode>('1x1')
     const [syncPan, setSyncPan] = useState(true)
     const [activeTool, setActiveTool] = useState<ActiveTool>('pan')
@@ -399,12 +399,12 @@ export default function DiagnosticViewer() {
                             </div>
                         )}
                         {(layout === '1x2' || layout === '2x2') && (
-                            <ViewerPane image={secondImage} images={images} selectedIndex={secondIndex} onSelectImage={setSecondIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} syncTransform={syncPan ? syncTransform : undefined} onTransformChange={handleTransformChange} lang={lang} t={t} />
+                            <ViewerPane image={secondImage} images={images} selectedIndex={secondIndex} onSelectImage={setSecondIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} syncTransform={syncPan ? syncTransform : undefined} onTransformChange={handleTransformChange} lang={lang} />
                         )}
                         {layout === '2x2' && (
                             <>
-                                <ViewerPane image={images[2] || images[0]} images={images} selectedIndex={2} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} t={t} />
-                                <ViewerPane image={images[3] || images[1]} images={images} selectedIndex={3} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} t={t} />
+                                <ViewerPane image={images[2] || images[0]} images={images} selectedIndex={2} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} />
+                                <ViewerPane image={images[3] || images[1]} images={images} selectedIndex={3} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} />
                             </>
                         )}
                         {layout === 'enface' && (<div className="viewer-pane" style={{ padding: 16 }}><EnFaceViewer lang={lang} /></div>)}
@@ -462,7 +462,7 @@ export default function DiagnosticViewer() {
                 {/* RIGHT: Report Panel */}
                 {showRightPanel && (
                     <div style={{ width: 300, minWidth: 300, flexShrink: 0, overflow: 'hidden', transition: 'width 0.2s' }}>
-                        <ReportPanel lang={lang} onSubmit={handleCompleteQC} />
+                        <ReportPanel lang={lang} selectedEyeSide={currentImage?.eyeSide} onSubmit={handleCompleteQC} />
                     </div>
                 )}
             </div>

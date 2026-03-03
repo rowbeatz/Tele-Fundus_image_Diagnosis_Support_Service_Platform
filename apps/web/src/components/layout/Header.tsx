@@ -6,9 +6,9 @@ import { useFontSize } from '../../contexts/FontSizeContext'
 import { Bell, LogOut, Menu, Type } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-type FontSize = 'small' | 'normal' | 'large'
+type FontSize = 'small' | 'normal' | 'normalPlus' | 'large'
 
-const fontSizeTooltips = { small: 'Small text', normal: 'Normal text', large: 'Large text' } as const
+const fontSizeTooltips: Record<FontSize, string> = { small: 'Small text', normal: 'Normal text', normalPlus: 'Normal+ text', large: 'Large text' }
 
 interface HeaderProps {
     onMenuToggle: () => void
@@ -18,7 +18,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
     const { user, logout } = useAuth()
     const { brand } = useBrand()
     const { t, lang } = useTranslation()
-    const { fontSize, setFontSize } = useFontSize()
+    const { fontSize, setFontSize, allSizes } = useFontSize()
     const navigate = useNavigate()
     const [showFontPopup, setShowFontPopup] = useState(false)
     const fontPopupRef = useRef<HTMLDivElement>(null)
@@ -53,12 +53,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
         client: 'Client',
     }
 
-    const fontSizes: { key: FontSize, labelEn: string, labelJa: string }[] = [
-        { key: 'small', labelEn: 'Small', labelJa: '小' },
-        { key: 'normal', labelEn: 'Normal', labelJa: '標準' },
-        { key: 'large', labelEn: 'Large', labelJa: '大' },
-    ]
-
     return (
         <header className="header">
             <div className="header-left">
@@ -92,7 +86,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
                                 {lang === 'ja' ? 'フォントサイズ' : 'Font Size'}
                             </div>
                             <div className="font-gauge">
-                                {fontSizes.map(fs => (
+                                {allSizes.map(fs => (
                                     <button
                                         key={fs.key}
                                         className={`font-gauge-btn ${fontSize === fs.key ? 'active' : ''}`}
@@ -101,9 +95,9 @@ export function Header({ onMenuToggle }: HeaderProps) {
                                             setShowFontPopup(false)
                                         }}
                                     >
-                                        <span className="font-gauge-sample">Aa</span>
+                                        <span className="font-gauge-sample" style={{ fontSize: `${fs.px}px` }}>Aa</span>
                                         <span className="font-gauge-label">
-                                            {lang === 'ja' ? fs.labelJa : fs.labelEn}
+                                            {lang === 'ja' ? fs.label.ja : fs.label.en}
                                         </span>
                                     </button>
                                 ))}

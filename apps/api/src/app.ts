@@ -14,6 +14,7 @@ import { opsReadingsRoutes } from './routes/ops-readings'
 import { accountingRoutes } from './routes/accounting'
 import { fhirRoutes } from './routes/fhir'
 import { communicationRoutes } from './routes/communication'
+import { screeningsRoutes } from './routes/screenings'
 import { DbSessionStore } from './infra/auth/session-store'
 import { ConsoleMailer } from './infra/mail/mailer'
 import { InMemoryJobQueue } from './infra/queue/job-queue'
@@ -42,6 +43,7 @@ app.route('/ops-readings', opsReadingsRoutes)
 app.route('/accounting', accountingRoutes)
 app.route('/fhir', fhirRoutes)
 app.route('/communication', communicationRoutes)
+app.route('/screenings', screeningsRoutes)
 app.route('/reading-reports', readingReportsRoutes)
 app.route('/case-discussions', caseDiscussionsRoutes)
 

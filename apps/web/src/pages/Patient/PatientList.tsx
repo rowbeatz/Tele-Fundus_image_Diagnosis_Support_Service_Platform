@@ -1,29 +1,66 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from '../../lib/i18n'
-import { Search, Plus, ChevronRight, Users, Filter } from 'lucide-react'
-
-// ─── Mock Patients ─────────────────────────────────────────────
-const mockPatients = [
-    { id: 'PT-20260001', name: '田中 太郎', nameKana: 'タナカ タロウ', sex: 'M', dob: '1958-03-15', age: 68, org: 'さくら眼科クリニック', lastVisit: '2026-02-26', screenings: 5, status: 'active' },
-    { id: 'PT-20260002', name: '鈴木 花子', nameKana: 'スズキ ハナコ', sex: 'F', dob: '1972-07-22', age: 53, org: '東京中央病院', lastVisit: '2026-02-25', screenings: 3, status: 'active' },
-    { id: 'PT-20260003', name: '佐藤 健一', nameKana: 'サトウ ケンイチ', sex: 'M', dob: '1945-11-03', age: 80, org: 'さくら眼科クリニック', lastVisit: '2026-02-24', screenings: 12, status: 'active' },
-    { id: 'PT-20260004', name: '山田 美咲', nameKana: 'ヤマダ ミサキ', sex: 'F', dob: '1989-01-30', age: 37, org: '大阪総合医療センター', lastVisit: '2026-02-20', screenings: 1, status: 'active' },
-    { id: 'PT-20260005', name: '高橋 翔太', nameKana: 'タカハシ ショウタ', sex: 'M', dob: '1965-09-12', age: 60, org: '東京中央病院', lastVisit: '2026-01-15', screenings: 8, status: 'active' },
-    { id: 'PT-20260006', name: '伊藤 真理', nameKana: 'イトウ マリ', sex: 'F', dob: '1950-04-08', age: 75, org: 'さくら眼科クリニック', lastVisit: '2026-02-10', screenings: 6, status: 'active' },
-    { id: 'PT-20260007', name: '渡辺 大輔', nameKana: 'ワタナベ ダイスケ', sex: 'M', dob: '1978-12-25', age: 47, org: '大阪総合医療センター', lastVisit: '2026-02-18', screenings: 2, status: 'active' },
-]
+import { Search, Plus, ChevronRight, Users, Filter, Loader2 } from 'lucide-react'
+import { fetchScreenings, type ScreeningListItem } from '../../lib/screeningApi'
 
 export default function PatientList() {
     const navigate = useNavigate()
-    const { t, lang } = useTranslation()
+    const { lang } = useTranslation()
     const [search, setSearch] = useState('')
     const [sexFilter, setSexFilter] = useState<string>('all')
+    const [screenings, setScreenings] = useState<ScreeningListItem[]>([])
+    const [loading, setLoading] = useState(true)
 
-    const filtered = mockPatients.filter(p => {
+    useEffect(() => {
+        let cancelled = false
+        const load = async () => {
+            try {
+                const data = await fetchScreenings()
+                if (!cancelled) {
+                    setScreenings(data)
+                    setLoading(false)
+                }
+            } catch (err) {
+                console.error('Failed to fetch patients:', err)
+                if (!cancelled) setLoading(false)
+            }
+        }
+        load()
+        return () => { cancelled = true }
+    }, [])
+
+    // Deduplicate by examineeId — group screenings per patient
+    const patientMap = new Map<string, {
+        id: string; patientId: string; name: string; sex: string;
+        age: number; org: string; lastVisit: string; screeningCount: number; examineeId: string
+    }>()
+    for (const s of screenings) {
+        const existing = patientMap.get(s.examineeId)
+        if (!existing || new Date(s.screeningDate) > new Date(existing.lastVisit)) {
+            patientMap.set(s.examineeId, {
+                id: s.examineeId,
+                patientId: s.patientId,
+                name: s.patientName,
+                sex: s.sex,
+                age: s.age,
+                org: s.organizationName,
+                lastVisit: s.screeningDate,
+                screeningCount: (existing?.screeningCount || 0) + (existing ? 0 : 1),
+                examineeId: s.examineeId,
+            })
+        }
+        if (existing) {
+            existing.screeningCount += 1
+        }
+    }
+    const patients = Array.from(patientMap.values())
+
+    const filtered = patients.filter(p => {
         const q = search.toLowerCase()
-        const matchSearch = !q || p.name.includes(search) || p.nameKana.includes(search) || p.id.toLowerCase().includes(q)
-        const matchSex = sexFilter === 'all' || p.sex === sexFilter
+        const matchSearch = !q || p.name.includes(search) || p.patientId.toLowerCase().includes(q)
+        const sexVal = p.sex === 'male' ? 'M' : p.sex === 'female' ? 'F' : p.sex
+        const matchSex = sexFilter === 'all' || sexVal === sexFilter
         return matchSearch && matchSex
     })
 
@@ -37,7 +74,7 @@ export default function PatientList() {
                         {lang === 'ja' ? '患者一覧' : 'Patient List'}
                     </h1>
                     <p style={{ marginTop: 4, color: 'var(--text-muted)' }}>
-                        {lang === 'ja' ? `${filtered.length} 名の患者が登録されています` : `${filtered.length} patients registered`}
+                        {loading ? '...' : (lang === 'ja' ? `${filtered.length} 名の患者が登録されています` : `${filtered.length} patients registered`)}
                     </p>
                 </div>
                 <button className="btn btn-primary" onClick={() => navigate('/patients/new')} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -54,7 +91,7 @@ export default function PatientList() {
                         type="text"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder={lang === 'ja' ? '氏名・ID・カナで検索…' : 'Search by name, ID, or kana…'}
+                        placeholder={lang === 'ja' ? '氏名・IDで検索…' : 'Search by name or ID…'}
                         className="form-input"
                         style={{ paddingLeft: 34, width: '100%' }}
                     />
@@ -71,43 +108,53 @@ export default function PatientList() {
 
             {/* Table */}
             <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>{lang === 'ja' ? '患者ID' : 'Patient ID'}</th>
-                            <th>{lang === 'ja' ? '氏名' : 'Name'}</th>
-                            <th>{lang === 'ja' ? '性別' : 'Sex'}</th>
-                            <th>{lang === 'ja' ? '年齢' : 'Age'}</th>
-                            <th>{lang === 'ja' ? '所属機関' : 'Organization'}</th>
-                            <th>{lang === 'ja' ? '最終受診' : 'Last Visit'}</th>
-                            <th>{lang === 'ja' ? '検査回数' : 'Screenings'}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filtered.map(p => (
-                            <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/patients/${p.id}`)}>
-                                <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--primary)' }}>{p.id}</span></td>
-                                <td>
-                                    <div style={{ fontWeight: 600 }}>{p.name}</div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.nameKana}</div>
-                                </td>
-                                <td>
-                                    <span className={`badge ${p.sex === 'M' ? 'badge-info' : 'badge-warning'}`} style={{ fontSize: '0.7rem' }}>
-                                        {p.sex === 'M' ? (lang === 'ja' ? '男' : 'M') : (lang === 'ja' ? '女' : 'F')}
-                                    </span>
-                                </td>
-                                <td>{p.age}{lang === 'ja' ? '歳' : 'y'}</td>
-                                <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{p.org}</td>
-                                <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{p.lastVisit}</td>
-                                <td style={{ textAlign: 'center' }}><span className="badge badge-neutral">{p.screenings}</span></td>
-                                <td>
-                                    <ChevronRight style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
-                                </td>
+                {loading ? (
+                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <Loader2 style={{ width: 24, height: 24, animation: 'spin 1s linear infinite' }} />
+                        <p style={{ marginTop: 8, fontSize: '0.85rem' }}>データを読み込んでいます...</p>
+                    </div>
+                ) : (
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>{lang === 'ja' ? '患者ID' : 'Patient ID'}</th>
+                                <th>{lang === 'ja' ? '氏名' : 'Name'}</th>
+                                <th>{lang === 'ja' ? '性別' : 'Sex'}</th>
+                                <th>{lang === 'ja' ? '年齢' : 'Age'}</th>
+                                <th>{lang === 'ja' ? '所属機関' : 'Organization'}</th>
+                                <th>{lang === 'ja' ? '最終受診' : 'Last Visit'}</th>
+                                <th>{lang === 'ja' ? '検査回数' : 'Screenings'}</th>
+                                <th></th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filtered.map(p => {
+                                const sexDisplay = p.sex === 'male' ? 'M' : p.sex === 'female' ? 'F' : p.sex
+                                const lastVisitDate = p.lastVisit ? new Date(p.lastVisit).toLocaleDateString('ja-JP') : '—'
+                                return (
+                                    <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/patients/${p.examineeId}`)}>
+                                        <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--primary)' }}>{p.patientId}</span></td>
+                                        <td>
+                                            <div style={{ fontWeight: 600 }}>{p.name}</div>
+                                        </td>
+                                        <td>
+                                            <span className={`badge ${sexDisplay === 'M' ? 'badge-info' : 'badge-warning'}`} style={{ fontSize: '0.7rem' }}>
+                                                {sexDisplay === 'M' ? (lang === 'ja' ? '男' : 'M') : (lang === 'ja' ? '女' : 'F')}
+                                            </span>
+                                        </td>
+                                        <td>{p.age}{lang === 'ja' ? '歳' : 'y'}</td>
+                                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{p.org}</td>
+                                        <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{lastVisitDate}</td>
+                                        <td style={{ textAlign: 'center' }}><span className="badge badge-neutral">{p.screeningCount}</span></td>
+                                        <td>
+                                            <ChevronRight style={{ width: 16, height: 16, color: 'var(--text-muted)' }} />
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     )

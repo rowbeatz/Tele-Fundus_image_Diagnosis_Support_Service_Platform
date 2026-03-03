@@ -1,23 +1,21 @@
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useTranslation } from '../lib/i18n'
-import { Activity, Eye, CheckCircle2, Users, ArrowRight } from 'lucide-react'
+import { Activity, Eye, CheckCircle2, Users, ArrowRight, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-
-const recentScreenings = [
-    { id: 1, patient: '田中 太郎', org: 'さくら眼科クリニック', status: 'completed', date: '2026-02-26', physician: 'Dr. 田中' },
-    { id: 2, patient: '鈴木 花子', org: '東京中央病院', status: 'in_reading', date: '2026-02-26', physician: 'Dr. 佐藤' },
-    { id: 3, patient: '佐藤 健一', org: 'さくら眼科クリニック', status: 'qc_review', date: '2026-02-25', physician: 'Dr. 田中' },
-    { id: 4, patient: '山田 美咲', org: '大阪総合医療センター', status: 'submitted', date: '2026-02-25', physician: '—' },
-    { id: 5, patient: '高橋 翔太', org: '東京中央病院', status: 'completed', date: '2026-02-24', physician: 'Dr. 佐藤' },
-]
+import { fetchScreenings, type ScreeningListItem } from '../lib/screeningApi'
 
 const statusBadge = (status: string) => {
     const map: Record<string, { cls: string; key: string }> = {
         'submitted': { cls: 'badge-info', key: 'status.submitted' },
         'reading_assigned': { cls: 'badge-warning', key: 'status.reading_assigned' },
         'in_reading': { cls: 'badge-warning', key: 'status.in_reading' },
+        'in_progress': { cls: 'badge-warning', key: 'status.in_reading' },
         'qc_review': { cls: 'badge-neutral', key: 'status.qc_review' },
         'completed': { cls: 'badge-success', key: 'status.completed' },
+        'saved': { cls: 'badge-info', key: 'status.submitted' },
+        'confirmed': { cls: 'badge-success', key: 'status.completed' },
+        'draft': { cls: 'badge-neutral', key: 'status.submitted' },
     }
     return map[status] || { cls: 'badge-neutral', key: status }
 }
@@ -27,12 +25,46 @@ export default function Dashboard() {
     const { t } = useTranslation()
     const navigate = useNavigate()
 
+    const [screenings, setScreenings] = useState<ScreeningListItem[]>([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        let cancelled = false
+        const load = async () => {
+            try {
+                const data = await fetchScreenings()
+                if (!cancelled) {
+                    setScreenings(data)
+                    setLoading(false)
+                }
+            } catch (err) {
+                console.error('Failed to fetch screenings:', err)
+                if (!cancelled) {
+                    setError('データの読み込みに失敗しました')
+                    setLoading(false)
+                }
+            }
+        }
+        load()
+        return () => { cancelled = true }
+    }, [])
+
+    // Compute stats from real data
+    const totalScreenings = screenings.length
+    const pendingCount = screenings.filter(s => s.status === 'submitted' || s.status === 'draft' || s.status === 'saved').length
+    const completedCount = screenings.filter(s => s.status === 'completed' || s.status === 'confirmed').length
+    const uniqueOrgs = new Set(screenings.map(s => s.organizationId)).size
+
     const stats = [
-        { icon: Eye, value: '2,847', labelKey: 'dashboard.stat.screenings' as const, color: '#0d9488', bg: 'var(--teal-50)' },
-        { icon: Activity, value: '23', labelKey: 'dashboard.stat.pending' as const, color: '#f59e0b', bg: 'var(--warning-light)' },
-        { icon: CheckCircle2, value: '12', labelKey: 'dashboard.stat.completed' as const, color: '#10b981', bg: 'var(--success-light)' },
-        { icon: Users, value: '8', labelKey: 'dashboard.stat.physicians' as const, color: '#3b82f6', bg: 'var(--info-light)' },
+        { icon: Eye, value: totalScreenings.toString(), labelKey: 'dashboard.stat.screenings' as const, color: '#0d9488', bg: 'var(--teal-50)' },
+        { icon: Activity, value: pendingCount.toString(), labelKey: 'dashboard.stat.pending' as const, color: '#f59e0b', bg: 'var(--warning-light)' },
+        { icon: CheckCircle2, value: completedCount.toString(), labelKey: 'dashboard.stat.completed' as const, color: '#10b981', bg: 'var(--success-light)' },
+        { icon: Users, value: uniqueOrgs.toString(), labelKey: 'dashboard.stat.physicians' as const, color: '#3b82f6', bg: 'var(--info-light)' },
     ]
+
+    // Take the 5 most recent for dashboard display
+    const recentScreenings = screenings.slice(0, 5)
 
     return (
         <div className="space-y-6">
@@ -52,7 +84,7 @@ export default function Dashboard() {
                                 <Icon style={{ width: 24, height: 24, color: s.color }} />
                             </div>
                             <div>
-                                <div className="stat-value">{s.value}</div>
+                                <div className="stat-value">{loading ? '...' : s.value}</div>
                                 <div className="stat-label">{t(s.labelKey)}</div>
                             </div>
                         </div>
@@ -67,45 +99,58 @@ export default function Dashboard() {
                     padding: '16px 20px', borderBottom: '1px solid var(--border)',
                 }}>
                     <h3 style={{ margin: 0 }}>{t('dashboard.recent')}</h3>
-                    <button className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '6px 14px', minHeight: 32 }}>
+                    <button className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '6px 14px', minHeight: 32 }} onClick={() => navigate('/screenings')}>
                         {t('dashboard.view_all')} <ArrowRight style={{ width: 14, height: 14 }} />
                     </button>
                 </div>
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>{t('table.patient')}</th>
-                            <th>{t('table.organization')}</th>
-                            <th>{t('table.status')}</th>
-                            <th>{t('table.date')}</th>
-                            <th>{t('table.physician')}</th>
-                            <th>{t('table.action')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {recentScreenings.map((s) => {
-                            const badge = statusBadge(s.status)
-                            return (
-                                <tr key={s.id}>
-                                    <td style={{ fontWeight: 500 }}>{s.patient}</td>
-                                    <td style={{ color: 'var(--text-secondary)' }}>{s.org}</td>
-                                    <td><span className={`badge ${badge.cls}`}>{t(badge.key as any)}</span></td>
-                                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{s.date}</td>
-                                    <td style={{ color: 'var(--text-secondary)' }}>{s.physician}</td>
-                                    <td>
-                                        <button
-                                            className="btn btn-secondary"
-                                            style={{ fontSize: '0.75rem', padding: '4px 10px', minHeight: 28 }}
-                                            onClick={() => navigate(`/viewer/mock`)}
-                                        >
-                                            {t('table.view')}
-                                        </button>
-                                    </td>
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </table>
+
+                {loading ? (
+                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <Loader2 style={{ width: 24, height: 24, animation: 'spin 1s linear infinite' }} />
+                        <p style={{ marginTop: 8, fontSize: '0.85rem' }}>データを読み込んでいます...</p>
+                    </div>
+                ) : error ? (
+                    <div style={{ padding: 40, textAlign: 'center', color: '#ef4444' }}>
+                        <p>{error}</p>
+                    </div>
+                ) : (
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>{t('table.patient')}</th>
+                                <th>{t('table.organization')}</th>
+                                <th>{t('table.status')}</th>
+                                <th>{t('table.date')}</th>
+                                <th>ID</th>
+                                <th>{t('table.action')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {recentScreenings.map((s) => {
+                                const badge = statusBadge(s.status)
+                                const dateStr = s.screeningDate ? new Date(s.screeningDate).toLocaleDateString('ja-JP') : '—'
+                                return (
+                                    <tr key={s.id}>
+                                        <td style={{ fontWeight: 500 }}>{s.patientName}</td>
+                                        <td style={{ color: 'var(--text-secondary)' }}>{s.organizationName}</td>
+                                        <td><span className={`badge ${badge.cls}`}>{t(badge.key as any)}</span></td>
+                                        <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{dateStr}</td>
+                                        <td style={{ color: 'var(--text-muted)', fontSize: '0.78rem', fontFamily: 'monospace' }}>{s.patientId}</td>
+                                        <td>
+                                            <button
+                                                className="btn btn-secondary"
+                                                style={{ fontSize: '0.75rem', padding: '4px 10px', minHeight: 28 }}
+                                                onClick={() => navigate(`/viewer/${s.id}`)}
+                                            >
+                                                {t('table.view')}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     )

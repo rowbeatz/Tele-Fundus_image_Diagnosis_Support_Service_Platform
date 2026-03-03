@@ -64,6 +64,29 @@ export class ExamineeRepository {
     return result.rows[0]
   }
 
+  async findById(id: string): Promise<ExamineeRecord | null> {
+    const result = await this.db.query<ExamineeRecord>(
+      `
+      select
+        id,
+        organization_id as "organizationId",
+        external_examinee_id as "externalExamineeId",
+        display_name as "displayName",
+        sex,
+        birth_date as "birthDate",
+        age,
+        medical_history_json::text as "medicalHistoryJson",
+        ocular_history_json::text as "ocularHistoryJson",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      from examinees
+      where id = $1 and deleted_at is null
+      `,
+      [id]
+    )
+    return result.rows[0] ?? null
+  }
+
   async findByExternalId(organizationId: string, externalId: string): Promise<ExamineeRecord | null> {
     const result = await this.db.query<ExamineeRecord>(
       `

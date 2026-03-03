@@ -4,6 +4,7 @@ import { BrandProvider } from './contexts/BrandContext'
 import { LanguageProvider } from './lib/i18n'
 import { FontSizeProvider } from './contexts/FontSizeContext'
 import { TabProvider } from './contexts/TabContext'
+import { ToastProvider } from './components/ui/ToastNotification'
 import { MainLayout } from './components/layout/MainLayout'
 import Login from './pages/Login'
 import Uploads from './pages/ClientPortal/Uploads'
@@ -30,39 +31,41 @@ function App() {
       <FontSizeProvider>
         <BrandProvider>
           <AuthProvider>
-            <BrowserRouter>
-              <TabProvider>
-                <Routes>
-                  <Route path="/login" element={<Login />} />
+            <ToastProvider>
+              <BrowserRouter>
+                <TabProvider>
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
 
-                  <Route element={<MainLayout />}>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/uploads" element={<Uploads />} />
-                    <Route path="/viewer/:screeningId" element={<DiagnosticViewer />} />
-                    <Route path="/ops/tasks" element={<TaskBoard />} />
-                    <Route path="/ops/qc" element={<QualityControl />} />
-                    <Route path="/admin/billing" element={<BillingDashboard />} />
-                    {/* Admin Pages */}
-                    <Route path="/admin/users" element={<UserManagement />} />
-                    <Route path="/admin/roles" element={<RolePermissions />} />
-                    <Route path="/admin/image-governance" element={<ImageGovernance />} />
-                    <Route path="/admin/brand" element={<BrandSettings />} />
-                    <Route path="/admin/organizations" element={<OrganizationManagement />} />
-                    <Route path="/admin/settings" element={<PlatformSettings />} />
-                    {/* Patient & Screening */}
-                    <Route path="/patients" element={<PatientList />} />
-                    <Route path="/patients/new" element={<PatientRegister />} />
-                    <Route path="/patients/:id" element={<PatientDetail />} />
-                    <Route path="/screenings/new/:patientId" element={<ScreeningRegister />} />
-                    {/* Reading */}
-                    <Route path="/readings" element={<ReadingQueue />} />
-                  </Route>
+                    <Route element={<MainLayout />}>
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/uploads" element={<Uploads />} />
+                      <Route path="/viewer/:screeningId" element={<DiagnosticViewer />} />
+                      <Route path="/ops/tasks" element={<TaskBoard />} />
+                      <Route path="/ops/qc" element={<QualityControl />} />
+                      <Route path="/admin/billing" element={<BillingDashboard />} />
+                      {/* Admin Pages */}
+                      <Route path="/admin/users" element={<UserManagement />} />
+                      <Route path="/admin/roles" element={<RolePermissions />} />
+                      <Route path="/admin/image-governance" element={<ImageGovernance />} />
+                      <Route path="/admin/brand" element={<BrandSettings />} />
+                      <Route path="/admin/organizations" element={<OrganizationManagement />} />
+                      <Route path="/admin/settings" element={<PlatformSettings />} />
+                      {/* Patient & Screening */}
+                      <Route path="/patients" element={<PatientList />} />
+                      <Route path="/patients/new" element={<PatientRegister />} />
+                      <Route path="/patients/:id" element={<PatientDetail />} />
+                      <Route path="/screenings/new/:patientId" element={<ScreeningRegister />} />
+                      {/* Reading */}
+                      <Route path="/readings" element={<ReadingQueue />} />
+                    </Route>
 
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </TabProvider>
-            </BrowserRouter>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </TabProvider>
+              </BrowserRouter>
+            </ToastProvider>
           </AuthProvider>
         </BrandProvider>
       </FontSizeProvider>

@@ -4,11 +4,11 @@ import { MoreHorizontal, CheckCircle2, Clock, AlertTriangle } from 'lucide-react
 import { useNavigate } from 'react-router-dom'
 
 const initialTasks = [
-    { id: 'scr-1', patientName: '田中 太郎', status: 'unassigned', priority: 'high', date: '2026-02-26 09:30' },
-    { id: 'scr-2', patientName: '鈴木 花子', status: 'reading', priority: 'normal', date: '2026-02-26 10:15', physicianName: 'Dr. 田中' },
-    { id: 'scr-3', patientName: '佐藤 健一', status: 'qc_review', priority: 'high', date: '2026-02-26 08:45', physicianName: 'Dr. 佐藤' },
-    { id: 'scr-4', patientName: '山田 美咲', status: 'unassigned', priority: 'normal', date: '2026-02-26 11:00' },
-    { id: 'scr-5', patientName: '高橋 翔太', status: 'reading', priority: 'high', date: '2026-02-26 07:30', physicianName: 'Dr. 田中' },
+    { id: 'eeee2222-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '鈴木 花子', status: 'unassigned', priority: 'normal', date: '2026-02-20 10:30' },
+    { id: 'eeee3333-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '伊藤 美穂', status: 'unassigned', priority: 'high', date: '2026-02-21 14:00' },
+    { id: 'eeee5555-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '山田 美咲', status: 'reading', priority: 'normal', date: '2026-02-23 11:00', physicianName: 'Dr. 田中 康夫' },
+    { id: 'eeee6666-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '渡辺 大輔', status: 'reading', priority: 'high', date: '2026-02-24 09:30', physicianName: 'Dr. 佐藤 恵理子' },
+    { id: 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '田中 太郎', status: 'qc_review', priority: 'normal', date: '2026-02-20 09:00', physicianName: 'Dr. 田中 康夫' },
 ]
 
 export default function TaskBoard() {

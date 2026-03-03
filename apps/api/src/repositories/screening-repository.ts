@@ -175,4 +175,65 @@ export class ScreeningRepository {
       [id]
     )
   }
+
+  /** Full list with joined examinee + organization data for dashboard/list views */
+  async findAllRich(): Promise<ScreeningListItem[]> {
+    const result = await this.db.query<ScreeningListItem>(
+      `
+      select
+        s.id,
+        s.status,
+        s.urgency_flag as "urgencyFlag",
+        s.screening_date as "screeningDate",
+        s.has_diabetes as "hasDiabetes",
+        s.blood_pressure_systolic as "bloodPressureSystolic",
+        s.blood_pressure_diastolic as "bloodPressureDiastolic",
+        e.id as "examineeId",
+        e.external_examinee_id as "patientId",
+        e.display_name as "patientName",
+        e.sex,
+        e.birth_date as "birthDate",
+        e.age,
+        o.name as "organizationName",
+        o.id as "organizationId",
+        (select count(*) from images i where i.screening_id = s.id)::int as "imageCount",
+        coalesce((select count(*) from readings r where r.screening_id = s.id), 0)::int as "readingCount"
+      from screenings s
+      join examinees e on e.id = s.examinee_id
+      join client_orders co on co.id = s.client_order_id
+      join organizations o on o.id = co.organization_id
+      where s.deleted_at is null
+      order by s.screening_date desc
+      `
+    )
+    return result.rows
+  }
+
+  /** Update screening with save/confirm workflow status */
+  async updateStatus(id: string, status: string): Promise<void> {
+    await this.db.query(
+      `update screenings set status = $2, updated_at = now() where id = $1 and deleted_at is null`,
+      [id, status]
+    )
+  }
+}
+
+export type ScreeningListItem = {
+  id: string
+  status: string
+  urgencyFlag: boolean
+  screeningDate: string
+  hasDiabetes: boolean | null
+  bloodPressureSystolic: number | null
+  bloodPressureDiastolic: number | null
+  examineeId: string
+  patientId: string
+  patientName: string
+  sex: string
+  birthDate: string
+  age: number
+  organizationName: string
+  organizationId: string
+  imageCount: number
+  readingCount: number
 }

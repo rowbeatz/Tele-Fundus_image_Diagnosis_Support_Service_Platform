@@ -35,12 +35,12 @@ const mockReadingQueue: ReadingItem[] = [
     { id: 'r4', screeningId: 'eeee6666-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '渡辺 大輔', patientAge: 77, patientSex: 'M', organizationName: '東京中央病院', screeningDate: '2026-02-24', urgencyFlag: true, imageCount: 2, status: 'assigned', assignedAt: '2026-02-24 10:30', dueAt: '2026-02-25 09:00' },
     { id: 'r5', screeningId: 'eeee7777-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '高橋 翔太', patientAge: 35, patientSex: 'M', organizationName: '大阪総合医療センター', screeningDate: '2026-02-25', urgencyFlag: false, imageCount: 2, status: 'draft', assignedAt: '2026-02-25 11:00' },
     { id: 'r6', screeningId: 'eeee9999-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '小林 誠', patientAge: 50, patientSex: 'M', organizationName: '大阪総合医療センター', screeningDate: '2026-02-26', urgencyFlag: true, imageCount: 2, status: 'assigned', assignedAt: '2026-02-26 09:00', dueAt: '2026-02-26 17:00' },
-    { id: 'r7', screeningId: 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '田中 太郎', patientAge: 61, patientSex: 'M', organizationName: 'さくら眼科クリニック', screeningDate: '2026-02-20', urgencyFlag: false, imageCount: 2, status: 'completed', assignedAt: '2026-02-20 10:00' },
+    { id: 'r7', screeningId: 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '田中 太郎', patientAge: 60, patientSex: 'M', organizationName: 'さくら眼科クリニック', screeningDate: '2026-02-20', urgencyFlag: false, imageCount: 2, status: 'completed', assignedAt: '2026-02-20 10:00' },
     { id: 'r8', screeningId: 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '佐藤 健一', patientAge: 67, patientSex: 'M', organizationName: '東京中央病院', screeningDate: '2026-02-22', urgencyFlag: false, imageCount: 2, status: 'completed', assignedAt: '2026-02-22 09:00' },
 ]
 
 export default function ReadingQueue() {
-    const { t } = useTranslation()
+    useTranslation()
     const navigate = useNavigate()
     const lang = (localStorage.getItem('lang') || 'ja')
     const [readings, setReadings] = useState<ReadingItem[]>([])
