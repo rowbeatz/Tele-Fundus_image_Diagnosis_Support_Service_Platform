@@ -355,188 +355,188 @@ export default function DiagnosticViewer() {
                             <PanelRightClose style={{ width: 20, height: 20 }} />
                         </button>
                     </div>
-                </div>
+                </div>{/* end viewer-layout-toggle */}
+            </div>{/* end viewer-patient-bar */}
 
-                {/* ═══ Main Content (3-Column) ═══ */}
-                <div className="viewer-body" style={{ display: 'flex', overflow: 'hidden', flex: 1 }}>
-                    {/* LEFT: Clinical Info */}
-                    {showLeftPanel && (
-                        <div style={{ width: 260, minWidth: 260, flexShrink: 0, overflow: 'hidden', transition: 'width 0.2s' }}>
-                            {showProgression ? (
-                                <ProgressionView lang={lang} onClose={() => setShowProgression(false)} />
-                            ) : (
-                                <ClinicalInfoPanel lang={lang} />
-                            )}
-                        </div>
-                    )}
-
-                    {/* CENTER: viewer */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-                        {/* Viewer Panes */}
-                        <div className={`viewer-panes layout-${layout === 'fundus+oct' ? '1x2' : layout}`} style={{ flex: 1 }}>
-                            <ViewerPane
-                                image={currentImage}
-                                images={images}
-                                selectedIndex={currentIndex}
-                                onSelectImage={setCurrentIndex}
-                                brightness={brightness}
-                                contrast={contrast}
-                                invert={invert}
-                                activeTool={activeTool}
-                                syncTransform={layout !== '1x1' && layout !== 'fundus+oct' ? syncTransform : undefined}
-                                onTransformChange={handleTransformChange}
-                                lang={lang}
-                                t={t}
-                                showScanLine={showOCT}
-                                scanPosition={scanPosition}
-                                onScanPositionChange={setScanPosition}
-                                showThicknessMap={showThicknessMap}
-                            />
-                            {layout === 'fundus+oct' && (
-                                <div className="viewer-pane oct-pane">
-                                    <OCTViewer scanPosition={scanPosition} onScanPositionChange={setScanPosition} brightness={brightness} contrast={contrast} invert={invert} lang={lang} />
-                                </div>
-                            )}
-                            {(layout === '1x2' || layout === '2x2') && (
-                                <ViewerPane image={secondImage} images={images} selectedIndex={secondIndex} onSelectImage={setSecondIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} syncTransform={syncPan ? syncTransform : undefined} onTransformChange={handleTransformChange} lang={lang} t={t} />
-                            )}
-                            {layout === '2x2' && (
-                                <>
-                                    <ViewerPane image={images[2] || images[0]} images={images} selectedIndex={2} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} t={t} />
-                                    <ViewerPane image={images[3] || images[1]} images={images} selectedIndex={3} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} t={t} />
-                                </>
-                            )}
-                            {layout === 'enface' && (<div className="viewer-pane" style={{ padding: 16 }}><EnFaceViewer lang={lang} /></div>)}
-                            {layout === 'octa' && (<div className="viewer-pane" style={{ padding: 16 }}><OCTAViewer lang={lang} /></div>)}
-                        </div>
-
-                        {/* ═══ Tools Strip ═══ */}
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px',
-                            borderTop: '1px solid var(--border)', background: 'var(--bg-card)', flexShrink: 0,
-                        }}>
-                            <button className={`tool-btn ${activeTool === 'pan' ? 'active' : ''}`} onClick={() => setActiveTool('pan')} title="Pan" style={{ padding: 6 }}><Eye style={{ width: 20, height: 20 }} /></button>
-                            <button className={`tool-btn ${activeTool === 'measure' ? 'active' : ''}`} onClick={() => setActiveTool('measure')} title={lang === 'ja' ? '計測' : 'Measure'} style={{ padding: 6 }}><Ruler style={{ width: 20, height: 20 }} /></button>
-                            <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
-                            <button className={`tool-btn ${showThicknessMap ? 'active' : ''}`} onClick={() => setShowThicknessMap(!showThicknessMap)} title="Map" style={{ padding: 6 }}><Map style={{ width: 20, height: 20 }} /></button>
-                            <button className={`tool-btn ${showOCT ? 'active' : ''}`} onClick={() => { setShowOCT(!showOCT); if (!showOCT) setLayout('fundus+oct'); else setLayout('1x1') }} title="OCT" style={{ padding: 6 }}><Layers style={{ width: 20, height: 20 }} /></button>
-
-                            <div style={{ flex: 1 }} />
-
-                            {/* Adjustments — larger icons, wider sliders, value labels */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <Sun style={{ width: 18, height: 18, color: 'var(--text-muted)' }} />
-                                <input type="range" min={0} max={200} value={brightness} onChange={e => setBrightness(Number(e.target.value))} style={{ width: 90, height: 6, accentColor: 'var(--primary)' }} />
-                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', width: 32, textAlign: 'right' }}>{brightness}%</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <Contrast style={{ width: 18, height: 18, color: 'var(--text-muted)' }} />
-                                <input type="range" min={0} max={200} value={contrast} onChange={e => setContrast(Number(e.target.value))} style={{ width: 90, height: 6, accentColor: 'var(--primary)' }} />
-                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', width: 32, textAlign: 'right' }}>{contrast}%</span>
-                            </div>
-                            <button onClick={() => setInvert(!invert)} className={`tool-btn ${invert ? 'active' : ''}`} title={t('viewer.invert')} style={{ padding: 6 }}><RotateCcw style={{ width: 18, height: 18 }} /></button>
-
-                            <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
-
-                            {/* Image Nav — larger buttons */}
-                            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>{lang === 'ja' ? '画像' : 'IMG'}</span>
-                            <button className="btn btn-secondary" style={{ fontSize: '0.85rem', padding: '4px 10px', minHeight: 32 }} disabled={currentIndex === 0} onClick={() => setCurrentIndex(p => p - 1)}>←</button>
-                            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--primary)', minWidth: 36, textAlign: 'center' }}>{currentIndex + 1}/{images.length}</span>
-                            <button className="btn btn-secondary" style={{ fontSize: '0.85rem', padding: '4px 10px', minHeight: 32 }} disabled={currentIndex === images.length - 1} onClick={() => setCurrentIndex(p => p + 1)}>→</button>
-
-                            {/* Next Case button — larger */}
-                            <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
-                            <button
-                                className="btn btn-primary"
-                                style={{ fontSize: '0.85rem', padding: '6px 16px', minHeight: 34, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}
-                                disabled={!hasNextCase}
-                                onClick={handleNextCase}
-                            >
-                                {lang === 'ja' ? '次の症例' : 'Next Case'}
-                                <ChevronRight style={{ width: 16, height: 16 }} />
-                            </button>
-                        </div>
-                    </div>{/* end center */}
-
-                    {/* RIGHT: Report Panel */}
-                    {showRightPanel && (
-                        <div style={{ width: 300, minWidth: 300, flexShrink: 0, overflow: 'hidden', transition: 'width 0.2s' }}>
-                            <ReportPanel lang={lang} onSubmit={handleCompleteQC} />
-                        </div>
-                    )}
-                </div>
-
-                {/* ═══ Floating Case Discussion Chat ═══ */}
-                {showChatPopup && (
-                    <div style={{
-                        position: 'fixed', bottom: 16, right: showRightPanel ? 320 : 16,
-                        width: 340, height: 420, zIndex: 1000,
-                        background: 'var(--bg-card)', border: '1px solid var(--border)',
-                        borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                        display: 'flex', flexDirection: 'column', overflow: 'hidden',
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
-                            <MessageCircle style={{ width: 16, height: 16, color: 'var(--primary)' }} />
-                            <span style={{ fontWeight: 600, fontSize: '0.82rem', flex: 1 }}>{lang === 'ja' ? 'ケースディスカッション' : 'Case Discussion'}</span>
-                            <button onClick={() => setShowChatPopup(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}>
-                                <X style={{ width: 16, height: 16 }} />
-                            </button>
-                        </div>
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {chatMessages.map(m => (
-                                <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.isOwn ? 'flex-end' : 'flex-start' }}>
-                                    {!m.isOwn && <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: 1 }}>{m.from}</span>}
-                                    <div style={{
-                                        background: m.isOwn ? 'var(--primary)' : 'var(--surface)',
-                                        color: m.isOwn ? 'white' : 'var(--text-primary)',
-                                        padding: '6px 10px', borderRadius: 8, maxWidth: '85%', fontSize: '0.78rem', lineHeight: 1.4,
-                                    }}>{m.text}</div>
-                                    <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 1 }}>{m.time}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div style={{ display: 'flex', gap: 6, padding: '8px 12px', borderTop: '1px solid var(--border)' }}>
-                            <input
-                                value={chatInput}
-                                onChange={e => setChatInput(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && sendChat()}
-                                placeholder={lang === 'ja' ? 'メッセージ...' : 'Message...'}
-                                style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)', fontSize: '0.78rem', background: 'var(--bg)', color: 'var(--text-primary)' }}
-                            />
-                            <button onClick={sendChat} style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer' }}>
-                                <Send style={{ width: 14, height: 14 }} />
-                            </button>
-                        </div>
+            {/* ═══ Main Content (3-Column) ═══ */}
+            <div className="viewer-body" style={{ display: 'flex', overflow: 'hidden', flex: 1 }}>
+                {/* LEFT: Clinical Info */}
+                {showLeftPanel && (
+                    <div style={{ width: 260, minWidth: 260, flexShrink: 0, overflow: 'hidden', transition: 'width 0.2s' }}>
+                        {showProgression ? (
+                            <ProgressionView lang={lang} onClose={() => setShowProgression(false)} />
+                        ) : (
+                            <ClinicalInfoPanel lang={lang} />
+                        )}
                     </div>
                 )}
 
-                {/* Chat FAB */}
-                {!showChatPopup && (
-                    <button
-                        onClick={() => setShowChatPopup(true)}
-                        style={{
-                            position: 'fixed', bottom: 16, right: showRightPanel ? 320 : 16,
-                            width: 48, height: 48, borderRadius: '50%', zIndex: 999,
-                            background: 'var(--primary)', color: 'white', border: 'none',
-                            cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            transition: 'all 0.2s',
-                        }}
-                        title={lang === 'ja' ? 'ケースディスカッション' : 'Case Discussion'}
-                    >
-                        <MessageCircle style={{ width: 20, height: 20 }} />
-                        {chatMessages.length > 0 && (
-                            <span style={{
-                                position: 'absolute', top: -2, right: -2,
-                                width: 18, height: 18, borderRadius: '50%',
-                                background: '#ef4444', color: 'white', fontSize: '0.6rem',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
-                            }}>{chatMessages.length}</span>
+                {/* CENTER: viewer */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+                    {/* Viewer Panes */}
+                    <div className={`viewer-panes layout-${layout === 'fundus+oct' ? '1x2' : layout}`} style={{ flex: 1 }}>
+                        <ViewerPane
+                            image={currentImage}
+                            images={images}
+                            selectedIndex={currentIndex}
+                            onSelectImage={setCurrentIndex}
+                            brightness={brightness}
+                            contrast={contrast}
+                            invert={invert}
+                            activeTool={activeTool}
+                            syncTransform={layout !== '1x1' && layout !== 'fundus+oct' ? syncTransform : undefined}
+                            onTransformChange={handleTransformChange}
+                            lang={lang}
+                            t={t}
+                            showScanLine={showOCT}
+                            scanPosition={scanPosition}
+                            onScanPositionChange={setScanPosition}
+                            showThicknessMap={showThicknessMap}
+                        />
+                        {layout === 'fundus+oct' && (
+                            <div className="viewer-pane oct-pane">
+                                <OCTViewer scanPosition={scanPosition} onScanPositionChange={setScanPosition} brightness={brightness} contrast={contrast} invert={invert} lang={lang} />
+                            </div>
                         )}
-                    </button>
+                        {(layout === '1x2' || layout === '2x2') && (
+                            <ViewerPane image={secondImage} images={images} selectedIndex={secondIndex} onSelectImage={setSecondIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} syncTransform={syncPan ? syncTransform : undefined} onTransformChange={handleTransformChange} lang={lang} t={t} />
+                        )}
+                        {layout === '2x2' && (
+                            <>
+                                <ViewerPane image={images[2] || images[0]} images={images} selectedIndex={2} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} t={t} />
+                                <ViewerPane image={images[3] || images[1]} images={images} selectedIndex={3} onSelectImage={setCurrentIndex} brightness={brightness} contrast={contrast} invert={invert} activeTool={activeTool} lang={lang} t={t} />
+                            </>
+                        )}
+                        {layout === 'enface' && (<div className="viewer-pane" style={{ padding: 16 }}><EnFaceViewer lang={lang} /></div>)}
+                        {layout === 'octa' && (<div className="viewer-pane" style={{ padding: 16 }}><OCTAViewer lang={lang} /></div>)}
+                    </div>
+
+                    {/* ═══ Tools Strip ═══ */}
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px',
+                        borderTop: '1px solid var(--border)', background: 'var(--bg-card)', flexShrink: 0,
+                    }}>
+                        <button className={`tool-btn ${activeTool === 'pan' ? 'active' : ''}`} onClick={() => setActiveTool('pan')} title="Pan" style={{ padding: 6 }}><Eye style={{ width: 20, height: 20 }} /></button>
+                        <button className={`tool-btn ${activeTool === 'measure' ? 'active' : ''}`} onClick={() => setActiveTool('measure')} title={lang === 'ja' ? '計測' : 'Measure'} style={{ padding: 6 }}><Ruler style={{ width: 20, height: 20 }} /></button>
+                        <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
+                        <button className={`tool-btn ${showThicknessMap ? 'active' : ''}`} onClick={() => setShowThicknessMap(!showThicknessMap)} title="Map" style={{ padding: 6 }}><Map style={{ width: 20, height: 20 }} /></button>
+                        <button className={`tool-btn ${showOCT ? 'active' : ''}`} onClick={() => { setShowOCT(!showOCT); if (!showOCT) setLayout('fundus+oct'); else setLayout('1x1') }} title="OCT" style={{ padding: 6 }}><Layers style={{ width: 20, height: 20 }} /></button>
+
+                        <div style={{ flex: 1 }} />
+
+                        {/* Adjustments — larger icons, wider sliders, value labels */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Sun style={{ width: 18, height: 18, color: 'var(--text-muted)' }} />
+                            <input type="range" min={0} max={200} value={brightness} onChange={e => setBrightness(Number(e.target.value))} style={{ width: 90, height: 6, accentColor: 'var(--primary)' }} />
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', width: 32, textAlign: 'right' }}>{brightness}%</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Contrast style={{ width: 18, height: 18, color: 'var(--text-muted)' }} />
+                            <input type="range" min={0} max={200} value={contrast} onChange={e => setContrast(Number(e.target.value))} style={{ width: 90, height: 6, accentColor: 'var(--primary)' }} />
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', width: 32, textAlign: 'right' }}>{contrast}%</span>
+                        </div>
+                        <button onClick={() => setInvert(!invert)} className={`tool-btn ${invert ? 'active' : ''}`} title={t('viewer.invert')} style={{ padding: 6 }}><RotateCcw style={{ width: 18, height: 18 }} /></button>
+
+                        <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
+
+                        {/* Image Nav — larger buttons */}
+                        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>{lang === 'ja' ? '画像' : 'IMG'}</span>
+                        <button className="btn btn-secondary" style={{ fontSize: '0.85rem', padding: '4px 10px', minHeight: 32 }} disabled={currentIndex === 0} onClick={() => setCurrentIndex(p => p - 1)}>←</button>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--primary)', minWidth: 36, textAlign: 'center' }}>{currentIndex + 1}/{images.length}</span>
+                        <button className="btn btn-secondary" style={{ fontSize: '0.85rem', padding: '4px 10px', minHeight: 32 }} disabled={currentIndex === images.length - 1} onClick={() => setCurrentIndex(p => p + 1)}>→</button>
+
+                        {/* Next Case button — larger */}
+                        <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
+                        <button
+                            className="btn btn-primary"
+                            style={{ fontSize: '0.85rem', padding: '6px 16px', minHeight: 34, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}
+                            disabled={!hasNextCase}
+                            onClick={handleNextCase}
+                        >
+                            {lang === 'ja' ? '次の症例' : 'Next Case'}
+                            <ChevronRight style={{ width: 16, height: 16 }} />
+                        </button>
+                    </div>
+                </div>{/* end center */}
+
+                {/* RIGHT: Report Panel */}
+                {showRightPanel && (
+                    <div style={{ width: 300, minWidth: 300, flexShrink: 0, overflow: 'hidden', transition: 'width 0.2s' }}>
+                        <ReportPanel lang={lang} onSubmit={handleCompleteQC} />
+                    </div>
                 )}
             </div>
-        </div >
+
+            {/* ═══ Floating Case Discussion Chat ═══ */}
+            {showChatPopup && (
+                <div style={{
+                    position: 'fixed', bottom: 16, right: showRightPanel ? 320 : 16,
+                    width: 340, height: 420, zIndex: 1000,
+                    background: 'var(--bg-card)', border: '1px solid var(--border)',
+                    borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                    display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
+                        <MessageCircle style={{ width: 16, height: 16, color: 'var(--primary)' }} />
+                        <span style={{ fontWeight: 600, fontSize: '0.82rem', flex: 1 }}>{lang === 'ja' ? 'ケースディスカッション' : 'Case Discussion'}</span>
+                        <button onClick={() => setShowChatPopup(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}>
+                            <X style={{ width: 16, height: 16 }} />
+                        </button>
+                    </div>
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {chatMessages.map(m => (
+                            <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.isOwn ? 'flex-end' : 'flex-start' }}>
+                                {!m.isOwn && <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: 1 }}>{m.from}</span>}
+                                <div style={{
+                                    background: m.isOwn ? 'var(--primary)' : 'var(--surface)',
+                                    color: m.isOwn ? 'white' : 'var(--text-primary)',
+                                    padding: '6px 10px', borderRadius: 8, maxWidth: '85%', fontSize: '0.78rem', lineHeight: 1.4,
+                                }}>{m.text}</div>
+                                <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 1 }}>{m.time}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, padding: '8px 12px', borderTop: '1px solid var(--border)' }}>
+                        <input
+                            value={chatInput}
+                            onChange={e => setChatInput(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && sendChat()}
+                            placeholder={lang === 'ja' ? 'メッセージ...' : 'Message...'}
+                            style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)', fontSize: '0.78rem', background: 'var(--bg)', color: 'var(--text-primary)' }}
+                        />
+                        <button onClick={sendChat} style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer' }}>
+                            <Send style={{ width: 14, height: 14 }} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Chat FAB */}
+            {!showChatPopup && (
+                <button
+                    onClick={() => setShowChatPopup(true)}
+                    style={{
+                        position: 'fixed', bottom: 16, right: showRightPanel ? 320 : 16,
+                        width: 48, height: 48, borderRadius: '50%', zIndex: 999,
+                        background: 'var(--primary)', color: 'white', border: 'none',
+                        cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.2s',
+                    }}
+                    title={lang === 'ja' ? 'ケースディスカッション' : 'Case Discussion'}
+                >
+                    <MessageCircle style={{ width: 20, height: 20 }} />
+                    {chatMessages.length > 0 && (
+                        <span style={{
+                            position: 'absolute', top: -2, right: -2,
+                            width: 18, height: 18, borderRadius: '50%',
+                            background: '#ef4444', color: 'white', fontSize: '0.6rem',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
+                        }}>{chatMessages.length}</span>
+                    )}
+                </button>
+            )}
+        </div>
     )
 }
 
