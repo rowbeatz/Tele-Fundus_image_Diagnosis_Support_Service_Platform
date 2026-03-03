@@ -20,8 +20,52 @@ export interface ThreadRecord {
     created_at: Date
 }
 
+export interface ThreadParticipantRecord {
+    thread_id: string
+    user_id: string
+}
+
 export class CommunicationRepository {
     constructor(private db: Pool) { }
+
+
+    async getThreadById(threadId: string): Promise<ThreadRecord | null> {
+        const result = await this.db.query(
+            'SELECT * FROM communication_threads WHERE id = $1 LIMIT 1',
+            [threadId]
+        )
+        return (result.rows[0] as ThreadRecord) || null
+    }
+
+    async isThreadParticipant(threadId: string, userId: string): Promise<boolean> {
+        const result = await this.db.query(
+            `SELECT 1 FROM thread_participants WHERE thread_id = $1 AND user_id = $2 LIMIT 1`,
+            [threadId, userId]
+        )
+        return (result.rowCount || 0) > 0
+    }
+
+    async canAccessScreeningThread(screeningId: string, userId: string): Promise<boolean> {
+        const result = await this.db.query(
+            `
+            SELECT 1
+            FROM screenings s
+            JOIN client_orders co ON s.client_order_id = co.id
+            LEFT JOIN assignments a ON a.screening_id = s.id AND a.is_current = true
+            JOIN users u ON u.id = $2
+            WHERE s.id = $1
+              AND (
+                  u.role IN ('admin', 'operator')
+                  OR (u.role = 'client' AND u.organization_id = co.organization_id)
+                  OR (u.role = 'physician' AND u.physician_id = a.physician_id)
+              )
+            LIMIT 1
+            `,
+            [screeningId, userId]
+        )
+
+        return (result.rowCount || 0) > 0
+    }
 
     async getOrCreateThread(screeningId: string, title?: string): Promise<ThreadRecord> {
         const existing = await this.db.query('SELECT * FROM communication_threads WHERE screening_id = $1 LIMIT 1', [screeningId])

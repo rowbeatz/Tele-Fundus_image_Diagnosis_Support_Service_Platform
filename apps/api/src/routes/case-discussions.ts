@@ -7,6 +7,29 @@ import { CaseDiscussionRepository } from '../repositories/case-discussion-reposi
 
 type AuthUser = { id: string; role: string; email?: string; fullName?: string }
 
+
+const canAccessScreening = async (db: ReturnType<typeof getDb>, screeningId: string, user: AuthUser) => {
+    const result = await db.query(
+        `
+        SELECT 1
+        FROM screenings s
+        JOIN client_orders co ON s.client_order_id = co.id
+        LEFT JOIN assignments a ON a.screening_id = s.id AND a.is_current = true
+        JOIN users u ON u.id = $2
+        WHERE s.id = $1
+          AND (
+              u.role IN ('admin', 'operator')
+              OR (u.role = 'client' AND u.organization_id = co.organization_id)
+              OR (u.role = 'physician' AND u.physician_id = a.physician_id)
+          )
+        LIMIT 1
+        `,
+        [screeningId, user.id]
+    )
+
+    return (result.rowCount || 0) > 0
+}
+
 export const caseDiscussionsRoutes = new Hono()
     .use('*', requireAuth)
 
@@ -17,6 +40,11 @@ export const caseDiscussionsRoutes = new Hono()
         const offset = parseInt(ctx.req.query('offset') || '0', 10)
         const db = getDb()
         const repo = new CaseDiscussionRepository(db)
+        const user = ctx.get('user') as AuthUser
+
+        if (!(await canAccessScreening(db, screeningId, user))) {
+            return ctx.json({ success: false, error: 'Forbidden for this screening' }, 403)
+        }
 
         const messages = await repo.listByScreening(screeningId, limit, offset)
         const count = await repo.countByScreening(screeningId)
@@ -34,6 +62,10 @@ export const caseDiscussionsRoutes = new Hono()
             const user = ctx.get('user') as AuthUser
             const db = getDb()
             const repo = new CaseDiscussionRepository(db)
+
+            if (!(await canAccessScreening(db, screeningId, user))) {
+                return ctx.json({ success: false, error: 'Forbidden for this screening' }, 403)
+            }
 
             const created = await repo.create({
                 screeningId,
@@ -55,10 +87,20 @@ export const caseDiscussionsRoutes = new Hono()
 
     // Delete a message (only own messages)
     .delete('/:screeningId/:messageId', async (ctx) => {
+        const screeningId = ctx.req.param('screeningId')
         const messageId = ctx.req.param('messageId')
         const db = getDb()
         const repo = new CaseDiscussionRepository(db)
+        const user = ctx.get('user') as AuthUser
 
-        await repo.delete(messageId)
+        if (!(await canAccessScreening(db, screeningId, user))) {
+            return ctx.json({ success: false, error: 'Forbidden for this screening' }, 403)
+        }
+
+        const deleted = await repo.deleteOwnedMessage(messageId, user.id, screeningId)
+        if (!deleted) {
+            return ctx.json({ success: false, error: 'Message not found or not owned by user' }, 404)
+        }
+
         return ctx.json({ success: true })
     })
