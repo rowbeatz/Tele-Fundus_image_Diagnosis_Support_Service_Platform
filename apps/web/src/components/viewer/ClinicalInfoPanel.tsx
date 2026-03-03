@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import type { ViewerData } from '../../lib/viewer-api'
 import {
     User, Heart, Pill, Eye, Activity, FileText,
     ChevronDown, ChevronUp, AlertTriangle, Building2, Save, Settings
@@ -114,8 +115,8 @@ function InfoRow({ label, value, highlight }: { label: string; value: string; hi
     )
 }
 
-export function ClinicalInfoPanel({ lang }: { lang: string }) {
-    const d = mockClinical
+export function ClinicalInfoPanel({ lang, data }: { lang: string; data?: ViewerData | null }) {
+    const d = useMemo(() => data ? mapViewerDataToClinical(data) : mockClinical, [data])
     const [sections, setSections] = useState<Record<SectionKey, boolean>>(loadDefaults)
     const [showSettings, setShowSettings] = useState(false)
     const [saved, setSaved] = useState(false)
@@ -276,4 +277,44 @@ export function ClinicalInfoPanel({ lang }: { lang: string }) {
             </div>
         </div>
     )
+}
+
+function mapViewerDataToClinical(v: ViewerData): ClinicalData {
+    return {
+        patient: {
+            patientId: v.patient.id || '',
+            name: v.patient.name,
+            age: v.patient.age || 0,
+            sex: v.patient.sex === 'F' || v.patient.sex === 'female' ? 'F' : 'M',
+            dob: v.patient.birthDate || '',
+            ethnicity: v.patient.ethnicity || '',
+            bloodType: v.patient.bloodType || '',
+        },
+        referral: {
+            facility: v.referral.facility || '',
+            doctor: v.referral.doctor || '',
+            phone: v.referral.phone || '',
+        },
+        chiefComplaint: v.screening.chiefComplaint || '',
+        symptoms: v.screening.symptoms || [],
+        medicalHistory: v.patient.medicalHistory || [],
+        ocularHistory: v.patient.ocularHistory || [],
+        medications: v.screening.currentMedications || [],
+        allergies: v.patient.allergies || [],
+        ophthalmicExam: {
+            vaRight: v.screening.ophthalmicExam?.vaRight || '-',
+            vaLeft: v.screening.ophthalmicExam?.vaLeft || '-',
+            iopRight: v.screening.ophthalmicExam?.iopRight || 0,
+            iopLeft: v.screening.ophthalmicExam?.iopLeft || 0,
+            anteriorFindings: v.screening.ophthalmicExam?.anteriorFindings || '-',
+        },
+        systemic: {
+            bpSystolic: v.screening.bpSystolic || 0,
+            bpDiastolic: v.screening.bpDiastolic || 0,
+            hba1c: v.screening.hba1c || 0,
+            smokingStatus: v.screening.smokingStatus || '',
+            hasDiabetes: !!v.screening.hasDiabetes,
+            hasHypertension: !!v.screening.hasHypertension,
+        }
+    }
 }

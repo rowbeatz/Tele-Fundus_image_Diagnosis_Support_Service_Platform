@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from '../../lib/i18n'
-import { fetchViewerData, fetchReadingQueue, fetchCaseMessages, sendCaseMessage as apiSendMessage, submitReport, type ReadingQueueItem, type CaseMessage as APICaseMessage } from '../../lib/viewer-api'
+import { fetchViewerData, fetchReadingQueue, fetchCaseMessages, sendCaseMessage as apiSendMessage, submitReport, type ViewerData } from '../../lib/viewer-api'
 import { FundusCanvas } from '../../components/canvas/FundusCanvas'
 import { OCTViewer } from '../../components/canvas/OCTViewer'
 import { MeasureTool } from '../../components/canvas/MeasureTool'
@@ -13,7 +13,7 @@ import { ReportPanel } from '../../components/viewer/ReportPanel'
 import { ProgressionView } from '../../components/viewer/ProgressionView'
 import {
     ArrowLeft, Sun, Contrast, RotateCcw,
-    Grid2x2, Columns2, Square, Eye, Ruler,
+    Grid2x2, Columns2, Eye, Ruler,
     Send, MessageCircle, X,
     Link2, ChevronRight, Building2, CheckCircle2,
     Scan, Layers, Map, Maximize, Cuboid, SplitSquareHorizontal,
@@ -112,6 +112,7 @@ export default function DiagnosticViewer() {
     const [images, setImages] = useState<ViewerImage[]>([])
     const [currentIndex, setCurrentIndex] = useState(0)
     const [secondIndex, setSecondIndex] = useState(1)
+    const [patient, setPatient] = useState<PatientInfo>(mockPatient)
     const [brightness, setBrightness] = useState(100)
     const [contrast, setContrast] = useState(100)
     const [invert, setInvert] = useState(false)
@@ -132,6 +133,7 @@ export default function DiagnosticViewer() {
     // Reading queue
     const [readingQueue, setReadingQueue] = useState<ReadingCase[]>(mockReadingQueue)
     const [apiReady, setApiReady] = useState(false)
+    const [fullData, setFullData] = useState<ViewerData | null>(null)
     const currentQueueIndex = readingQueue.findIndex(c => c.screeningId === screeningId)
     const completedCount = readingQueue.filter(c => c.status === 'completed').length
     const totalCount = readingQueue.length
@@ -148,6 +150,19 @@ export default function DiagnosticViewer() {
                 const viewerData = await fetchViewerData(screeningId || '')
                 if (cancelled) return
                 setApiReady(true)
+                setFullData(viewerData)
+
+                setPatient({
+                    patientId: viewerData.patient.id || '',
+                    name: viewerData.patient.name || '',
+                    nameKana: '',
+                    age: viewerData.patient.age || 0,
+                    dob: viewerData.patient.birthDate || '',
+                    sex: (viewerData.patient.sex === 'female' || viewerData.patient.sex === 'F' ? 'F' : 'M') as 'M' | 'F',
+                    referralFacility: viewerData.referral?.facility || '',
+                    referralDoctor: viewerData.referral?.doctor || '',
+                    organization: viewerData.referral?.facility || '',
+                })
 
                 // Map API images to ViewerImage
                 const apiImages: ViewerImage[] = viewerData.images.map(img => ({
@@ -280,17 +295,17 @@ export default function DiagnosticViewer() {
 
                 {/* Patient info */}
                 <div className="patient-info-group">
-                    <span className="patient-id">{mockPatient.patientId}</span>
-                    <span className="patient-name">{mockPatient.name}</span>
-                    <span className="patient-detail">{mockPatient.age}{lang === 'ja' ? '歳' : 'y'} / {mockPatient.sex === 'M' ? (lang === 'ja' ? '男性' : 'Male') : (lang === 'ja' ? '女性' : 'Female')}</span>
+                    <span className="patient-id">{patient.patientId}</span>
+                    <span className="patient-name">{patient.name}</span>
+                    <span className="patient-detail">{patient.age}{lang === 'ja' ? '歳' : 'y'} / {patient.sex === 'M' ? (lang === 'ja' ? '男性' : 'Male') : (lang === 'ja' ? '女性' : 'Female')}</span>
                 </div>
 
                 {/* Referral / Client Info */}
                 <div className="patient-info-group" style={{ borderLeft: '1px solid var(--border)', paddingLeft: 12 }}>
                     <Building2 style={{ width: 14, height: 14, color: 'var(--text-muted)', flexShrink: 0 }} />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)' }}>{mockPatient.referralFacility}</span>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{lang === 'ja' ? '依頼医' : 'Ref.'}: {mockPatient.referralDoctor}</span>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)' }}>{patient.referralFacility}</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{lang === 'ja' ? '依頼医' : 'Ref.'}: {patient.referralDoctor}</span>
                     </div>
                 </div>
 
@@ -366,7 +381,7 @@ export default function DiagnosticViewer() {
                         {showProgression ? (
                             <ProgressionView lang={lang} onClose={() => setShowProgression(false)} />
                         ) : (
-                            <ClinicalInfoPanel lang={lang} />
+                            <ClinicalInfoPanel lang={lang} data={fullData} />
                         )}
                     </div>
                 )}
@@ -387,7 +402,6 @@ export default function DiagnosticViewer() {
                             syncTransform={layout !== '1x1' && layout !== 'fundus+oct' ? syncTransform : undefined}
                             onTransformChange={handleTransformChange}
                             lang={lang}
-                            t={t}
                             showScanLine={showOCT}
                             scanPosition={scanPosition}
                             onScanPositionChange={setScanPosition}
@@ -552,8 +566,8 @@ interface ViewerPaneProps {
     contrast: number;
     invert: boolean;
     activeTool: 'pan' | 'measure';
-    syncTransform: { x: number; y: number; scale: number } | null;
-    onTransformChange: (t: { x: number; y: number; scale: number }) => void;
+    syncTransform?: { x: number; y: number; scale: number } | null;
+    onTransformChange?: (x: number, y: number, scale: number) => void;
     lang: string;
     showScanLine?: boolean;
     scanPosition?: number;

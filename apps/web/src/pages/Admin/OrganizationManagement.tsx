@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useTranslation } from '../../lib/i18n'
-import { Building2, Users, Phone, Mail, MapPin, Edit2, Plus, Search, MoreVertical, CheckCircle2, XCircle } from 'lucide-react'
+import { Building2, Search, Plus, Users, CheckCircle2, XCircle, Mail, Phone, MapPin, Edit2 } from 'lucide-react'
 import { api } from '../../lib/api'
 
 interface Organization {

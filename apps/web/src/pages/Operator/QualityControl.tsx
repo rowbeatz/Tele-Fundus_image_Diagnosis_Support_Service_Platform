@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldCheck, CheckCircle2, XCircle, Clock, AlertTriangle, Eye, Search, Filter, ChevronRight, User, Building2, MessageCircle } from 'lucide-react'
+import { ShieldCheck, CheckCircle2, XCircle, Clock, Eye, Search, Filter } from 'lucide-react'
 import { api } from '../../lib/api'
 
 interface QCItem {

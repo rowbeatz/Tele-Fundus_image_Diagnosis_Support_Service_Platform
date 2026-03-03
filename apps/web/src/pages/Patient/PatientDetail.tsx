@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from '../../lib/i18n'
 import {
-    ArrowLeft, User, Heart, Pill, Eye, Activity, Clock,
+    ArrowLeft, User, Heart, Eye, Clock,
     Plus, FileText, ChevronDown, ChevronUp, Loader2
 } from 'lucide-react'
-import { fetchScreenings, fetchScreeningDetail, type ScreeningListItem } from '../../lib/screeningApi'
+import { fetchScreenings, type ScreeningListItem } from '../../lib/screeningApi'
 
 function Section({ title, icon, children, defaultOpen = true }: { title: string, icon: React.ReactNode, children: React.ReactNode, defaultOpen?: boolean }) {
     const [open, setOpen] = useState(defaultOpen)

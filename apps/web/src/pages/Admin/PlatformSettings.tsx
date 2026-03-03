@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Settings, Bell, Shield, Database, Globe, Palette, Save, ToggleLeft, ToggleRight, Monitor, Moon, Sun } from 'lucide-react'
+import { Settings, Bell, Shield, Database, Save, Monitor } from 'lucide-react'
 
 interface SettingSection {
     id: string
