@@ -7,6 +7,11 @@ export const ja: Record<TranslationKey, string> = {
     'app.version': 'v0.1.0 エンタープライズ',
     'app.secure': 'HIPAA準拠 セキュア医療プラットフォーム',
 
+    // Common
+    'common.select': '選択してください',
+    'common.confirm': '確定',
+    'common.cancel': 'キャンセル',
+
     // Auth
     'auth.title': 'サインイン',
     'auth.subtitle': 'アカウントにログインしてください',

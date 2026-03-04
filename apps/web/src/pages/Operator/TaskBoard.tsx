@@ -1,20 +1,82 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useTranslation } from '../../lib/i18n'
-import { MoreHorizontal, CheckCircle2, Clock, AlertTriangle } from 'lucide-react'
+import { MoreHorizontal, CheckCircle2, Clock, AlertTriangle, Building2, Activity, UserPlus, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { fetchScreenings, fetchPhysicians, assignPhysician, type Physician } from '../../lib/screeningApi'
 
-const initialTasks = [
-    { id: 'eeee2222-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '鈴木 花子', status: 'unassigned', priority: 'normal', date: '2026-02-20 10:30' },
-    { id: 'eeee3333-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '伊藤 美穂', status: 'unassigned', priority: 'high', date: '2026-02-21 14:00' },
-    { id: 'eeee5555-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '山田 美咲', status: 'reading', priority: 'normal', date: '2026-02-23 11:00', physicianName: 'Dr. 田中 康夫' },
-    { id: 'eeee6666-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '渡辺 大輔', status: 'reading', priority: 'high', date: '2026-02-24 09:30', physicianName: 'Dr. 佐藤 恵理子' },
-    { id: 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', patientName: '田中 太郎', status: 'qc_review', priority: 'normal', date: '2026-02-20 09:00', physicianName: 'Dr. 田中 康夫' },
-]
+type Task = {
+    id: string
+    patientName: string
+    organizationName: string
+    status: string
+    priority: 'normal' | 'high'
+    date: string
+    physicianName?: string
+    clinicalHints: string[]
+}
 
 export default function TaskBoard() {
-    const [tasks, setTasks] = useState(initialTasks)
+    const [tasks, setTasks] = useState<Task[]>([])
+    const [physicians, setPhysicians] = useState<Physician[]>([])
+    const [loading, setLoading] = useState(true)
+    const [assigningTaskId, setAssigningTaskId] = useState<string | null>(null)
+    const [selectedPhysicianId, setSelectedPhysicianId] = useState<string>('')
+
     const navigate = useNavigate()
-    const { t } = useTranslation()
+    const { t, lang } = useTranslation()
+
+    const load = async () => {
+        try {
+            setLoading(true)
+            const [data, physData] = await Promise.all([
+                fetchScreenings(),
+                fetchPhysicians()
+            ])
+            setPhysicians(physData)
+
+            const loadedTasks: Task[] = data.map(s => {
+                let status = 'unassigned'
+                if (s.status === 'completed') status = 'qc_review'
+                else if (s.urgencyFlag) status = 'reading'
+
+                const hints = []
+                if (s.hasDiabetes) hints.push('DM')
+                if (s.bloodPressureSystolic && s.bloodPressureSystolic >= 140) hints.push('HTN')
+
+                return {
+                    id: s.id,
+                    patientName: s.patientName,
+                    organizationName: s.organizationName,
+                    status,
+                    priority: s.urgencyFlag ? 'high' : 'normal',
+                    date: new Date(s.screeningDate).toLocaleString(lang === 'ja' ? 'ja-JP' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                    clinicalHints: hints
+                }
+            })
+            setTasks(loadedTasks)
+        } catch (err) {
+            console.error("Failed to load tasks", err)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        load()
+    }, [lang])
+
+    const handleAssignSubmit = async (taskId: string) => {
+        if (!selectedPhysicianId) return
+        try {
+            await assignPhysician(taskId, selectedPhysicianId)
+            setAssigningTaskId(null)
+            setSelectedPhysicianId('')
+            await load() // refresh board
+        } catch (err) {
+            console.error('Failed to assign physician:', err)
+            alert('アサインに失敗しました。')
+        }
+    }
 
     const columns = [
         { id: 'unassigned', titleKey: 'taskboard.col.unassigned' as const },
@@ -58,26 +120,73 @@ export default function TaskBoard() {
                                         className={`kanban-card ${task.priority === 'high' ? 'priority-high' : 'priority-normal'}`}
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, task.id)}
+                                        onClick={() => navigate(`/viewer/${task.id}`)}
+                                        style={{ cursor: 'pointer' }}
                                     >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                                            <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{task.patientName}</span>
+                                            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{task.patientName}</span>
                                             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}>
                                                 <MoreHorizontal style={{ width: 16, height: 16 }} />
                                             </button>
                                         </div>
 
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+                                            <Building2 style={{ width: 12, height: 12 }} /> {task.organizationName}
+                                        </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 8 }}>
                                             <Clock style={{ width: 12, height: 12 }} /> {task.date}
                                         </div>
 
+                                        {task.clinicalHints.length > 0 && (
+                                            <div style={{ display: 'flex', gap: 4, marginBottom: 8, flexWrap: 'wrap' }}>
+                                                {task.clinicalHints.map((hint, i) => (
+                                                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '2px 6px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 600 }}>
+                                                        <Activity style={{ width: 10, height: 10 }} /> {hint}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         {task.physicianName && (
-                                            <span className="badge badge-info" style={{ marginBottom: 8 }}>{task.physicianName}</span>
+                                            <span className="badge badge-info" style={{ marginBottom: 8, display: 'inline-block' }}>{task.physicianName}</span>
                                         )}
 
                                         {col.id === 'unassigned' && (
-                                            <button className="btn btn-secondary" style={{ width: '100%', marginTop: 4, fontSize: '0.8rem', minHeight: 32 }}>
-                                                {t('taskboard.assign')}
-                                            </button>
+                                            <div style={{ marginTop: 4 }}>
+                                                {assigningTaskId === task.id ? (
+                                                    <div style={{ background: 'var(--surface)', padding: 8, borderRadius: 6, border: '1px solid var(--border)', marginTop: 8 }} onClick={e => e.stopPropagation()}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                                            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t('taskboard.assign')}</span>
+                                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setAssigningTaskId(null)}><X style={{ width: 14, height: 14 }} /></button>
+                                                        </div>
+                                                        <select
+                                                            className="input"
+                                                            style={{ width: '100%', fontSize: '0.8rem', padding: '4px 8px', marginBottom: 8 }}
+                                                            value={selectedPhysicianId}
+                                                            onChange={e => setSelectedPhysicianId(e.target.value)}
+                                                        >
+                                                            <option value="">{t('common.select')}...</option>
+                                                            {physicians.map(p => (
+                                                                <option key={p.id} value={p.id}>{p.name} ({p.specialty})</option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            className="btn btn-primary"
+                                                            style={{ width: '100%', fontSize: '0.8rem', padding: '4px' }}
+                                                            disabled={!selectedPhysicianId}
+                                                            onClick={() => handleAssignSubmit(task.id)}
+                                                        >
+                                                            {t('common.confirm')}
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button className="btn btn-secondary" style={{ width: '100%', fontSize: '0.8rem', minHeight: 32 }}
+                                                        onClick={(e) => { e.stopPropagation(); setAssigningTaskId(task.id); setSelectedPhysicianId(''); }}>
+                                                        <UserPlus style={{ width: 14, height: 14, marginRight: 4 }} />
+                                                        {t('taskboard.assign')}
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
                                         {col.id === 'qc_review' && (
                                             <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
@@ -94,7 +203,8 @@ export default function TaskBoard() {
                                         )}
                                     </div>
                                 ))}
-                                {columnTasks.length === 0 && (
+                                {loading && <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)' }}>Loading...</div>}
+                                {!loading && columnTasks.length === 0 && (
                                     <div style={{
                                         textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)',
                                         minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center',

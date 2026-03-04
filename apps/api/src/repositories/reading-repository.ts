@@ -26,7 +26,7 @@ export type CreateReadingInput = {
 }
 
 export class ReadingRepository {
-  constructor(private readonly db: DbLike) {}
+  constructor(private readonly db: DbLike) { }
 
   async findById(id: string): Promise<ReadingRecord | null> {
     const result = await this.db.query<ReadingRecord>(
@@ -157,5 +157,18 @@ export class ReadingRepository {
       [id, input.judgmentCode, input.findingText, input.referralRequired, input.physicianComment]
     )
     return result.rows[0] ?? null
+  }
+
+  async updateStatus(id: string, status: string): Promise<void> {
+    await this.db.query(
+      `
+      update readings
+      set
+        status = $2,
+        updated_at = now()
+      where id = $1
+      `,
+      [id, status]
+    )
   }
 }

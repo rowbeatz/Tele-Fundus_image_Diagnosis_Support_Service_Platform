@@ -5,6 +5,11 @@ export const en = {
     'app.version': 'v0.1.0 Enterprise',
     'app.secure': 'HIPAA-Compliant Secure Medical Platform',
 
+    // Common
+    'common.select': 'Select',
+    'common.confirm': 'Confirm',
+    'common.cancel': 'Cancel',
+
     // Auth
     'auth.title': 'Sign In',
     'auth.subtitle': 'Enter your credentials to access the platform',

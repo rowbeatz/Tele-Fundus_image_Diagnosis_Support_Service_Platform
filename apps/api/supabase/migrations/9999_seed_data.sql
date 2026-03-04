@@ -289,40 +289,40 @@ ON CONFLICT DO NOTHING;
 -- ═══ Readings (all screenings have readings) ═══
 INSERT INTO readings (id, screening_id, assignment_id, physician_id, status, finding_text, judgment_code, referral_required, physician_comment, submitted_at)
 VALUES
-  ('rr110000-0000-0000-0000-000000000001', 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000001', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'submitted',
+  ('b1110000-0000-0000-0000-000000000001', 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000001', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'submitted',
     '右眼: 軽度の非増殖糖尿病網膜症（NPDR）。散在する微小動脈瘤、点状出血あり。黄斑浮腫なし。左眼: 正常範囲内。', 'B_observation', false,
     '3ヶ月後の再検査を推奨。血糖コントロールの改善が望ましい。', '2026-02-21 10:00'),
-  ('rr110000-0000-0000-0000-000000000002', 'eeee2222-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000002', 'aaaa2222-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
+  ('b1110000-0000-0000-0000-000000000002', 'eeee2222-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000002', 'aaaa2222-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
     NULL, NULL, false, NULL, NULL),
-  ('rr110000-0000-0000-0000-000000000003', 'eeee3333-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000003', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
+  ('b1110000-0000-0000-0000-000000000003', 'eeee3333-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000003', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
     NULL, NULL, false, NULL, NULL),
-  ('rr110000-0000-0000-0000-000000000004', 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000004', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'submitted',
+  ('b1110000-0000-0000-0000-000000000004', 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000004', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'submitted',
     '両眼: 中等度の非増殖糖尿病網膜症。硬性白斑が黄斑近傍に増加。毛細血管閉塞域あり。', 'C1_detailed_exam', true,
     '蛍光眼底造影検査を推奨。レーザー光凝固術の適応を検討。', '2026-02-23 14:00'),
-  ('rr110000-0000-0000-0000-000000000005', 'eeee5555-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000005', 'aaaa3333-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
+  ('b1110000-0000-0000-0000-000000000005', 'eeee5555-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000005', 'aaaa3333-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
     NULL, NULL, false, NULL, NULL),
-  ('rr110000-0000-0000-0000-000000000006', 'eeee6666-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000006', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
+  ('b1110000-0000-0000-0000-000000000006', 'eeee6666-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000006', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
     NULL, NULL, false, NULL, NULL),
-  ('rr110000-0000-0000-0000-000000000007', 'eeee7777-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000007', 'aaaa3333-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
+  ('b1110000-0000-0000-0000-000000000007', 'eeee7777-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000007', 'aaaa3333-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
     NULL, NULL, false, NULL, NULL),
-  ('rr110000-0000-0000-0000-000000000008', 'eeee8888-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000008', 'aaaa2222-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
+  ('b1110000-0000-0000-0000-000000000008', 'eeee8888-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000008', 'aaaa2222-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
     NULL, NULL, false, NULL, NULL),
-  ('rr110000-0000-0000-0000-000000000009', 'eeee9999-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000009', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
+  ('b1110000-0000-0000-0000-000000000009', 'eeee9999-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000009', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
     NULL, NULL, false, NULL, NULL),
-  ('rr110000-0000-0000-0000-000000000010', 'eeee0000-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000010', 'aaaa4444-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
+  ('b1110000-0000-0000-0000-000000000010', 'eeee0000-eeee-eeee-eeee-eeeeeeeeeeee', 'aa110000-0000-0000-0000-000000000010', 'aaaa4444-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'draft',
     NULL, NULL, false, NULL, NULL)
 ON CONFLICT DO NOTHING;
 
 -- ═══ Reading Reports (for completed screenings) ═══
 INSERT INTO reading_reports (id, reading_id, screening_id, physician_id, findings_right_json, findings_left_json, judgment_code, judgment_label, referral_required, report_text, status, submitted_at)
 VALUES
-  ('rp110000-0000-0000-0000-000000000001', 'rr110000-0000-0000-0000-000000000001', 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  ('b2220000-0000-0000-0000-000000000001', 'b1110000-0000-0000-0000-000000000001', 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     '{"drusen": false, "hemorrhage": true, "hardExudate": false, "softExudate": false, "neovasc": false, "microCapillaryAnomaly": true, "macula": false, "opticNerve": false, "severity": "mild"}',
     '{"drusen": false, "hemorrhage": false, "hardExudate": false, "softExudate": false, "neovasc": false, "microCapillaryAnomaly": false, "macula": false, "opticNerve": false, "severity": "none"}',
     'B_observation', 'B: 要経過観察', false,
     '右眼に軽度の非増殖糖尿病網膜症所見を認めます。散在する微小動脈瘤と点状出血がありますが、黄斑浮腫は認められません。左眼は正常範囲内です。3ヶ月後の定期フォローアップと、HbA1c 7.0%未満を目標とした血糖コントロールの改善をお勧めします。',
     'submitted', '2026-02-21 10:00'),
-  ('rp110000-0000-0000-0000-000000000002', 'rr110000-0000-0000-0000-000000000004', 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  ('b2220000-0000-0000-0000-000000000002', 'b1110000-0000-0000-0000-000000000004', 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     '{"drusen": false, "hemorrhage": true, "hardExudate": true, "softExudate": true, "neovasc": false, "microCapillaryAnomaly": true, "macula": true, "opticNerve": false, "severity": "moderate"}',
     '{"drusen": false, "hemorrhage": true, "hardExudate": true, "softExudate": false, "neovasc": false, "microCapillaryAnomaly": true, "macula": false, "opticNerve": false, "severity": "moderate"}',
     'C1_detailed_exam', 'C1: 要精密検査', true,
@@ -334,11 +334,39 @@ ON CONFLICT DO NOTHING;
 INSERT INTO case_discussions (id, screening_id, user_id, message, created_at)
 VALUES
   -- 田中太郎の症例ディスカッション
-  ('cd000001-0000-0000-0000-000000000001', 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb3333-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '田中さんの右眼にNPDR所見を確認しました。微小動脈瘤が散見されますが、黄斑浮腫は認めません。', '2026-02-21 09:30+09'),
-  ('cd000001-0000-0000-0000-000000000002', 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb2222-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '了解しました。HbA1cが7.2%と高めですので、主治医への情報提供も検討してください。', '2026-02-21 09:35+09'),
+  ('c0000001-0000-0000-0000-000000000001', 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb3333-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '田中さんの右眼にNPDR所見を確認しました。微小動脈瘤が散見されますが、黄斑浮腫は認めません。', '2026-02-21 09:30+09'),
+  ('c0000001-0000-0000-0000-000000000002', 'eeee1111-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb2222-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '了解しました。HbA1cが7.2%と高めですので、主治医への情報提供も検討してください。', '2026-02-21 09:35+09'),
   -- 佐藤健一の症例ディスカッション
-  ('cd000002-0000-0000-0000-000000000001', 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb3333-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '佐藤さんの眼底所見ですが、前回と比較して硬性白斑が増加しています。精密検査をお勧めします。', '2026-02-23 13:45+09'),
-  ('cd000002-0000-0000-0000-000000000002', 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb5555-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '同意します。蛍光眼底造影も検討した方が良いでしょう。', '2026-02-23 13:50+09'),
+  ('c0000002-0000-0000-0000-000000000001', 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb3333-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '佐藤さんの眼底所見ですが、前回と比較して硬性白斑が増加しています。精密検査をお勧めします。', '2026-02-23 13:45+09'),
+  ('c0000002-0000-0000-0000-000000000002', 'eeee4444-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb5555-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '同意します。蛍光眼底造影も検討した方が良いでしょう。', '2026-02-23 13:50+09'),
   -- 小林誠の症例ディスカッション
-  ('cd000003-0000-0000-0000-000000000001', 'eeee9999-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb3333-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '小林さんの右眼に新規出血所見を確認。糖尿病性網膜症の進行が疑われます。', '2026-02-26 08:45+09')
+  ('c0000003-0000-0000-0000-000000000001', 'eeee9999-eeee-eeee-eeee-eeeeeeeeeeee', 'bbbb3333-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '小林さんの右眼に新規出血所見を確認。糖尿病性網膜症の進行が疑われます。', '2026-02-26 08:45+09')
+ON CONFLICT DO NOTHING;
+
+--
+-- =====================================================================
+-- ACCOUNTING & BILLING MOCK DATA
+-- =====================================================================
+
+INSERT INTO billing_plans (id, organization_id, name, base_price, volume_tiers_json, is_active) VALUES
+  ('acc11111-acc1-acc1-acc1-acc111111111', '11111111-1111-1111-1111-111111111111', 'Enterprise Hybrid', 50000.00, '[{"maxReadings": 100, "price": 0}, {"maxReadings": null, "price": 1500}]', true),
+  ('acc22222-acc2-acc2-acc2-acc222222222', '22222222-2222-2222-2222-222222222222', 'Pay As You Go', 0.00, '[{"maxReadings": null, "price": 2000}]', true),
+  ('acc33333-acc3-acc3-acc3-acc333333333', '33333333-3333-3333-3333-333333333333', 'Premium Sub', 150000.00, '[{"maxReadings": null, "price": 0}]', true)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO physician_payout_tiers (id, physician_id, base_rate, urgent_rate_modifier, penalty_rate_modifier, is_active) VALUES
+  ('71e11111-71e1-71e1-71e1-71e111111111', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 800.00, 200.00, 0.00, true),
+  ('71e22222-71e2-71e2-71e2-71e222222222', 'aaaa2222-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 1000.00, 250.00, 0.00, true)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO invoices (id, organization_id, billing_month, base_amount, tax_amount, total_amount, status) VALUES
+  ('117c1111-117c-117c-117c-117c11111111', '11111111-1111-1111-1111-111111111111', '2025-01', 117500.00, 11750.00, 129250.00, 'paid'),
+  ('117c2222-117c-117c-117c-117c22222222', '11111111-1111-1111-1111-111111111111', '2025-02', 68000.00, 6800.00, 74800.00, 'draft'),
+  ('117c3333-117c-117c-117c-117c33333333', '22222222-2222-2222-2222-222222222222', '2025-02', 60000.00, 6000.00, 66000.00, 'issued')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO physician_payments (id, physician_id, payment_month, base_amount, tax_amount, total_amount, status) VALUES
+  ('ba171111-ba17-ba17-ba17-ba1711111111', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '2025-01', 35000.00, 0.00, 35000.00, 'paid'),
+  ('ba172222-ba17-ba17-ba17-ba1722222222', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '2025-02', 15400.00, 0.00, 15400.00, 'pending'),
+  ('ba173333-ba17-ba17-ba17-ba1733333333', 'aaaa2222-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '2025-02', 94500.00, 0.00, 94500.00, 'pending')
 ON CONFLICT DO NOTHING;

@@ -3,19 +3,30 @@ import { useTranslation } from '../../lib/i18n'
 import { api } from '../../lib/api'
 import { TrendingUp, Users, DollarSign, Activity, FileText } from 'lucide-react'
 
-const dummyDashboard = { totalBilled: 850000, totalPaid: 320000, grossMargin: 530000, grossMarginPercentage: 62.3 }
+
 
 export default function BillingDashboard() {
     const [data, setData] = useState<any>(null)
+    const [invoices, setInvoices] = useState<any[]>([])
+    const [payments, setPayments] = useState<any[]>([])
     const [isGenerating, setIsGenerating] = useState(false)
     const { t } = useTranslation()
 
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
-                const res = await api.get('/accounting/dashboard')
-                setData(res.data.totalBilled === 0 ? dummyDashboard : res.data)
-            } catch { setData(dummyDashboard) }
+                const [res, invRes, payRes] = await Promise.all([
+                    api.get('/accounting/dashboard'),
+                    api.get('/accounting/invoices'),
+                    api.get('/accounting/payments')
+                ])
+                setData(res.data)
+                setInvoices(invRes.data)
+                setPayments(payRes.data)
+            } catch (err) {
+                console.error('Failed to fetch dashboard', err)
+                setData({ totalBilled: 0, totalPaid: 0, grossMargin: 0, grossMarginPercentage: 0 })
+            }
         }
         fetchDashboard()
     }, [])
@@ -69,32 +80,65 @@ export default function BillingDashboard() {
                 })}
             </div>
 
-            <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-                    <h3 style={{ margin: 0 }}>{t('billing.recent')}</h3>
-                </div>
-                <div style={{ padding: '0' }}>
-                    {[
-                        { icon: FileText, title: 'さくら眼科クリニック 請求書発行', sub: '¥125,000 — 150件 (ボリュームティア: Level 2)', time: '10分前', iconBg: 'var(--info-light)', iconColor: '#3b82f6' },
-                        { icon: DollarSign, title: 'Dr. 田中 報酬支払処理', sub: '¥32,000 — 40件 (ティア: Specialist)', time: '1時間前', iconBg: 'var(--success-light)', iconColor: '#10b981' },
-                    ].map((item, i) => {
-                        const Icon = item.icon
-                        return (
-                            <div key={i} style={{
-                                display: 'flex', alignItems: 'center', gap: 14,
-                                padding: '14px 20px', borderBottom: '1px solid var(--border-light)',
-                            }}>
-                                <div className="avatar avatar-lg" style={{ background: item.iconBg, color: item.iconColor }}>
-                                    <Icon style={{ width: 20, height: 20 }} />
+            <div className="grid grid-2">
+                <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+                        <h3 style={{ margin: 0 }}>Recent Client Invoices</h3>
+                    </div>
+                    <div style={{ padding: '0' }}>
+                        {invoices.length === 0 ? <div style={{ padding: 20, color: 'var(--text-muted)' }}>No invoices generated</div> : invoices.slice(0, 5).map((inv, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px', borderBottom: '1px solid var(--border-light)' }}>
+                                <div className="avatar avatar-lg" style={{ background: 'var(--info-light)', color: '#3b82f6' }}>
+                                    <FileText style={{ width: 20, height: 20 }} />
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{item.title}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.sub}</div>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{inv.organization_name} — {inv.billing_month}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total: ¥{Number(inv.total_amount).toLocaleString()} ({inv.status})</div>
                                 </div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.time}</div>
+                                {inv.status !== 'paid' && (
+                                    <button
+                                        onClick={async () => {
+                                            await api.post(`/accounting/invoices/${inv.id}/pay`);
+                                            // Refresh would be ideal here, mock for now
+                                            alert('Invoice marked as paid');
+                                        }}
+                                        style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}>
+                                        Mark Paid
+                                    </button>
+                                )}
                             </div>
-                        )
-                    })}
+                        ))}
+                    </div>
+                </div>
+
+                <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+                        <h3 style={{ margin: 0 }}>Recent Physician Payouts</h3>
+                    </div>
+                    <div style={{ padding: '0' }}>
+                        {payments.length === 0 ? <div style={{ padding: 20, color: 'var(--text-muted)' }}>No payouts generated</div> : payments.slice(0, 5).map((pay, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px', borderBottom: '1px solid var(--border-light)' }}>
+                                <div className="avatar avatar-lg" style={{ background: 'var(--success-light)', color: '#10b981' }}>
+                                    <DollarSign style={{ width: 20, height: 20 }} />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{pay.physician_name} — {pay.payment_month}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Amount: ¥{Number(pay.total_amount).toLocaleString()} ({pay.status})</div>
+                                </div>
+                                {pay.status !== 'paid' && (
+                                    <button
+                                        onClick={async () => {
+                                            await api.post(`/accounting/payments/${pay.id}/pay`);
+                                            // Refresh mock
+                                            alert('Payout transferred');
+                                        }}
+                                        style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}>
+                                        Transfer
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
