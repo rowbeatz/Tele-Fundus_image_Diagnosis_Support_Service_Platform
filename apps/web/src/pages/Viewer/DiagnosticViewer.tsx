@@ -588,6 +588,8 @@ export default function DiagnosticViewer() {
                             startY: e.clientY,
                             initialElemX: fabPos.x === 0 && fabPos.y === 0 ? rect.left : fabPos.x,
                             initialElemY: fabPos.x === 0 && fabPos.y === 0 ? rect.top : fabPos.y,
+                            currentX: fabPos.x === 0 && fabPos.y === 0 ? rect.left : fabPos.x,
+                            currentY: fabPos.x === 0 && fabPos.y === 0 ? rect.top : fabPos.y,
                         }
                         if (fabPos.x === 0 && fabPos.y === 0) {
                             setFabPos({ x: rect.left, y: rect.top })
