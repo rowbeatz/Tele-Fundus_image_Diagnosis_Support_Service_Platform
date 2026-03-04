@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from '../../lib/i18n'
 import { fetchViewerData, fetchReadingQueue, fetchCaseMessages, sendCaseMessage as apiSendMessage, submitReport, type ViewerData } from '../../lib/viewer-api'
