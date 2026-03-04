@@ -7,7 +7,7 @@ import { ScreeningRepository } from '../repositories/screening-repository'
 import { AssignmentRepository } from '../repositories/assignment-repository'
 import { ReadingRepository } from '../repositories/reading-repository'
 
-export const opsScreeningsRoutes = new Hono()
+export const opsScreeningsRoutes = new Hono<{ Variables: { user: { id: string, role: string } } }>()
   .use('*', requireAuth)
 
   // Reception Check: Mark a screening as ready for reading (create a draft reading if needed)
@@ -23,7 +23,7 @@ export const opsScreeningsRoutes = new Hono()
     async (ctx) => {
       const screeningId = ctx.req.param('screeningId')
       const { isPassed, rejectionReason } = ctx.req.valid('json')
-      
+
       const db = getDb()
       const screeningRepo = new ScreeningRepository(db)
       const readingRepo = new ReadingRepository(db)
@@ -57,7 +57,7 @@ export const opsScreeningsRoutes = new Hono()
       const screeningId = ctx.req.param('screeningId')
       const { physicianId, dueAt, reassignReason } = ctx.req.valid('json')
       const user = ctx.get('user')
-      
+
       const db = getDb()
       const assignmentRepo = new AssignmentRepository(db)
       const screeningRepo = new ScreeningRepository(db)

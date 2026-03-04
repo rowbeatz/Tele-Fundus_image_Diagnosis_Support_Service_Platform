@@ -15,6 +15,8 @@ import { accountingRoutes } from './routes/accounting'
 import { fhirRoutes } from './routes/fhir'
 import { communicationRoutes } from './routes/communication'
 import { screeningsRoutes } from './routes/screenings'
+import { organizationsRoutes } from './routes/organizations'
+import { physiciansRoutes } from './routes/physicians'
 import { DbSessionStore } from './infra/auth/session-store'
 import { ConsoleMailer } from './infra/mail/mailer'
 import { InMemoryJobQueue } from './infra/queue/job-queue'
@@ -46,7 +48,8 @@ app.route('/communication', communicationRoutes)
 app.route('/screenings', screeningsRoutes)
 app.route('/reading-reports', readingReportsRoutes)
 app.route('/case-discussions', caseDiscussionsRoutes)
-
+app.route('/organizations', organizationsRoutes)
+app.route('/physicians', physiciansRoutes)
 
 const bucketName = process.env.AWS_S3_BUCKET || 'tele-fundus-portal-assets'
 const endpoint = process.env.S3_ENDPOINT

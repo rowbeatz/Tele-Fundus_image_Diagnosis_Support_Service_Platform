@@ -60,9 +60,25 @@ export interface ExamineeDetail {
 // ─── API Calls ────────────────────────────────────────────
 
 /** Fetch all screenings (joined with patient & org data) */
+export interface Physician {
+    id: string
+    name: string
+    specialty: string
+    status: string
+}
+
 export async function fetchScreenings(): Promise<ScreeningListItem[]> {
     const { data } = await api.get('/screenings')
-    return data.screenings
+    return data
+}
+
+export async function fetchPhysicians(): Promise<Physician[]> {
+    const { data } = await api.get('/physicians')
+    return data
+}
+
+export async function assignPhysician(screeningId: string, physicianId: string): Promise<void> {
+    await api.post(`/ops-screenings/${screeningId}/assign`, { physicianId })
 }
 
 /** Fetch single screening detail */
