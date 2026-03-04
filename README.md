@@ -1,92 +1,328 @@
 # 遠隔眼底画像診断支援サービス・統合プラットフォーム
-(Tele-Fundus Image Diagnosis Support Service Platform)
+**Tele-Fundus Image Diagnosis Support Service Platform**
 
-本リポジトリは、健診センター等の依頼元から眼底画像（JPEG等）を受託し、専門医による読影、オペレーターによる品質管理（QC）、そして複雑な料金計算を伴う請求・支払までを一気通貫で提供する**統合型エンタープライズ・プラットフォーム**のソースコードおよび包括的仕様書です。
-
-このREADMEは、本プラットフォームにおけるすべての機能要件、業務フロー、およびアーキテクチャの「究極のマスタードキュメント」として機能し、今後のアップデートや作り替えの際にも、システム全体の仕様を完璧に理解できるように保守されます。
-
----
-
-## 1. システムの全体像と目的
-
-本システムは、眼底カメラ画像の読影業務をデジタル化・効率化するだけにとどまらず、**「医療プラットフォーム・運用管理・高度な会計システム」**を一体化した業務インフラとして機能します。
-
-### 【主要なステークホルダー】
-1. **依頼元（Client / 健診センター・病院等）**: 受診者情報・問診結果・眼底画像の登録、読影依頼、および結果の受領を行う。
-2. **読影医（Physician / 専門医）**: 割り当てられた依頼に対し、専用ビューワ等を用いて読影所見を作成する。
-3. **運用・オペレーター（Operator / プラットフォーム運営者）**: 依頼の受付確認、医師への読影割当、進捗管理、QC（品質チェック）、および会計業務の処理を行う。
+このREADMEは、本リポジトリを**単独で復元・運用・拡張できるレベル**の統合仕様書です。  
+対象読者は、開発者・運用担当・インフラ担当・プロダクト責任者を想定しています。
 
 ---
 
-## 2. コア業務フロー（End-to-End Workflow）
+## 0. このシステムの役割（何を担うか）
 
-1. **受付・アップロード（依頼元）**: 依頼元が受診者の頭書き（基本情報）、問診結果、血圧、既往歴情報などを入力し、眼底画像（JPEGベース）をアップロードしてDBに紐付ける。リスト化して一括での読影依頼も可能。
-2. **一次受付・割当（オペレーター）**: 新規依頼をシステム上で確認。画像不備等がないか一次チェックし、適切な読影医へ割り振る（アサイン）。
-3. **読影実施（読影医）**: 医師は自身に割り当てられたリストを確認し、専用ビューワを立ち上げて所見・判定を入力、完了報告（提出）を行う。
-4. **品質管理（QC）と返却（オペレーター）**: 提出された所見をオペレーターあるいは指導医がチェック。差し戻しが必要な場合は再読影へ回し、完了（QC Passed）すれば依頼元のポータルに診断結果として返却される。
-5. **月次集計・会計処理（システム/経理）**: 完了した読影実績に基づき、各依頼元への請求額の計算と、各読影医への支払額（報酬）の計算をバッチまたはオンデマンドで実行する。
+本アプリケーションは、眼底画像診断業務の以下を**単一プラットフォームで一気通貫**に担います。
 
----
+1. 依頼元（健診センター/病院）からの症例登録
+2. 受診者情報・問診情報・画像ファイルの管理
+3. オペレーターによる受付・割当・進捗監視
+4. 読影医による読影・所見作成・提出
+5. QC（品質確認）と差し戻し/確定
+6. 請求（依頼元向け）と支払（読影医向け）の会計処理
+7. 症例に紐づくコミュニケーション（チャット/症例ディスカッション）
 
-## 3. 主要機能と詳細要件
-
-### 3.1 依頼元（Client）ポータル
-* **受診者情報管理**: 基本属性、問診データ、血圧、眼科的・全身的既往歴の入力および管理。
-* **画像アップロード & リスト化**: 検診センターから大量のJPEG画像のWeb経由アップロード、進捗（未送信・依頼中・完了等）のリスト表示機能。
-* **読影結果レポート**: 読影が完了し、QCを通過した結果の閲覧・PDFダウンロード（一括・個別）。
-* **利用実績ダッシュボード**: 当月の依頼件数、結果待ち件数、請求予定額等の集計表示。
-
-### 3.2 読影医（Physician）ポータル & 専用ビューワ
-* **タスク管理**: 自身にアサインされた読影待ちリスト、期限の確認と進捗管理。
-* **所見入力フォーム**: 定型文入力、所見分類（シェーマ等）に基づくプルダウン・チェックボックス入力機能。
-* **高機能画像ビューワ（必須機能要件）**:
-  * **基本操作**: パン、ズーム（拡大縮小）、フィット表示、画像回転、左右反転/上下反転。
-  * **画像調整機能**: コントラスト調整、明度（輝度）調整、ガンマ補正。眼底特有の病変を見やすくするためのカラーセパレーション（Red-free, Green等）フィルター。
-  * **比較機能**: 過去の画像との並べて表示（Two-up view / Sync scrolling）、左右眼の比較。
-  * **アノテーション機能**: 気になる病変への一時的マーキングや距離計測。
-  * **ショートカット対応**: キーボードで「次へ」「拡大」「所見A」などの高速操作ができること。
-
-### 3.3 オペレーター管理（Ops）ポータル
-* **割当管理（ディスパッチャー）**: 医師ごとの稼働状況や専門性を考慮した読影の自動/手動割当。
-* **進捗・アラート管理**: 納期遅延リスクのある依頼の検知、ステータストラッキング（受付中・割当済・読影中・QC待ち・完了）。
-* **QC（品質チェック）画面**: 読影医の入力した所見の妥当性をチェックし、「完了」または「差し戻し（コメント付き）」を行う機能。
-
-### 3.4 高度会計・集計・経理システムモジュール（Core Billing Engine）
-このプラットフォームの最重要機能の一つ。単なるステータス管理ではなく、本格的な経理システムとしての堅牢性と柔軟性を持つ。
-
-* **依頼元への請求システム（Billing to Clients）**
-  * **料金テーブル管理**: 通常基本料金に加え、「月間○○件以上で単価△△円」といった**ボリュームディスカウント（階層別料金テーブル）**の設定機能。
-  * **特例・オプション管理**: 至急対応料金オプション、特定の健診センター向けの特別契約価格の適用。
-  * **自動請求書生成**: 毎月末で締め、CSVインポート明細やPDF請求書を自動発行する機能。
-* **読影医への支払システム（Payouts to Physicians）**
-  * **報酬テーブル管理**: 各医師のランク（専門医・指導医レベル等）に基づく単価設定。
-  * **条件分岐型報酬**: 読影の難易度（再検査指示案件など）や、深夜帯・休日対応、あるいは差し戻し率等の品質によるインセンティブ/ペナルティ計算。
-  * **支払明細発行**: 月次に確定した読影件数・QC通過数に基づき、源泉徴収等を考慮した支払明細を生成。
-* **台帳・統合ダッシュボード機能**: プラットフォーム全体の売上（請求）、原価（医師支払）、粗利のリアルタイムトラッキングとエクスポート機能。
+このため、単なる画像ビューアではなく、**業務ワークフロー + 医療データ管理 + 会計管理**を統合した基幹アプリです。
 
 ---
 
-## 4. システムアーキテクチャ・データ構造定義
+## 1. リポジトリ構成
 
-| ドメイン | コアエンティティ | 役割・関連 |
-| :--- | :--- | :--- |
-| **Master Data** | `Organization`, `Physician`, `User` | 依頼元マスタ、医師マスタ、利用ユーザーアカウント。料金プランのベースとなる。 |
-| **Clinical Data** | `Examinee`, `Screening`, `Image` | 受診者属性、問診・血圧・既往歴、およびS3上の眼底画像パス。 |
-| **Workflow Data** | `ClientOrder`, `Reading`, `Assignment`, `ReadingReview` | 依頼バッチ、読影所見・判定、医師への割当状態、QCの合否ログ。 |
-| **Accounting Data**| `BillingPlan`, `PhysicianPayoutTier`, `Invoice`, `PhysicianPayment` | 前述のボリュームディスカウント定義、医師別単価定義、月次確定請求・支払データ。 |
+```text
+.
+├─ apps/
+│  ├─ api/                  # Hono + TypeScript API
+│  │  ├─ src/
+│  │  │  ├─ routes/         # 画面/機能別API
+│  │  │  ├─ repositories/   # DBアクセス層
+│  │  │  ├─ middleware/     # 認証・監査・セキュリティ
+│  │  │  └─ lib/            # DB, 認証, ストレージ等の共通処理
+│  │  └─ supabase/migrations/
+│  │                         # PostgreSQLマイグレーションとシード
+│  └─ web/                  # React + Vite フロントエンド
+│     └─ src/
+│        ├─ pages/          # 画面単位UI
+│        ├─ components/     # 再利用UI/業務コンポーネント
+│        ├─ contexts/       # 認証/設定コンテキスト
+│        └─ lib/            # APIクライアント
+├─ docs/spec/               # 要件・業務フロー・画面遷移・ERなどの仕様群
+├─ docker-compose.yml       # db/api/web の起動定義
+└─ Dockerfile.api           # APIコンテナ定義
+```
 
 ---
 
-## 5. 技術スタック群
+## 2. 技術スタック（実装実態）
 
-* **Backend**: Node.js, Hono (TypeScript), データベース直呼び出し (Raw `pg`), AWS SDK (S3 Presigned URLs)
-* **Frontend**: React, React Router, Tailwind CSS, shadcn/ui (Planned)
-* **Viewer**: HTML Canvas API / WebGLベースの高機能画像処理コントロール (実装予定)
-* **Reporting**: Puppeteer（PDF生成・請求書生成）
-* **Infrastructure**: PostgreSQL, AWS S3, Docker, Vercel/AWS (Target)
+### Backend
+- **Node.js + TypeScript**
+- **Hono**（ルーティング/HTTP層）
+- **pg（PostgreSQL driver）**
+- **AWS SDK（S3 Presigned URL）**
+
+### Frontend
+- **React + Vite + TypeScript**
+- **Tailwind CSSベースのスタイル運用**
+- 一部UIで診断ビューア/チャット/業務パネルを提供
+
+### Infrastructure
+- **PostgreSQL 15**（docker-composeで起動）
+- **Docker Compose**（db/api/web）
+- オブジェクトストレージはS3互換を想定
 
 ---
 
-## 6. 保守と今後のアップデート指針
+## 3. ドメインモデル（業務エンティティ全体像）
 
-このドキュメントは、システム全体の思想を定義したものです。今後のプログラム変更、DBマイグレーションの追加、あるいは新しい決済ルールの追加などがあった場合、**必ず本READMEおよび付随する `implementation_plan.md` 等に合わせて修正を行い、誰もがプラットフォームの"今"と"全容"を完璧に把握できる状態を維持**してください。
+以下が中核のデータモデルです。
+
+### 3.1 マスタ系
+- `organizations`：依頼元施設
+- `physicians`：読影医
+- `users`：ログインユーザー（admin/operator/physician/client）
+
+### 3.2 臨床系
+- `examinees`：受診者
+- `client_orders`：依頼バッチ（施設単位）
+- `screenings`：症例本体（問診・バイタル等を内包）
+- `images`：症例に紐づく眼底画像
+
+### 3.3 ワークフロー系
+- `assignments`：症例の読影割当
+- `readings`：読影レコード
+- `reading_reports`：構造化所見レポート
+- `reading_reviews`：QC履歴
+
+### 3.4 会計系
+- `billing_plans`：依頼元課金プラン
+- `physician_payout_tiers`：医師支払単価
+- `invoices` / `physician_payments`：請求・支払確定データ
+
+### 3.5 コミュニケーション系
+- `communication_threads`：症例スレッド
+- `messages`：スレッドメッセージ
+- `thread_participants`：参加者
+- `case_discussions`：症例ディスカッションメッセージ
+
+### 3.6 権限・監査系
+- `roles`, `permissions`, `role_permissions`, `user_roles`
+- `audit_logs`
+
+---
+
+## 4. 症例中心のデータ接続（ID連携ルール）
+
+このシステムの整合性の中心は**screening_id（症例ID）**です。
+
+### 基本の接続チェーン
+`organization -> client_order -> screening -> image/assignment/reading -> reading_report/review`
+
+### コミュニケーション接続
+- `communication_threads.screening_id` によりスレッドは症例へ紐づく
+- `messages.thread_id` で会話が症例スレッドへ紐づく
+- `case_discussions.screening_id` で症例直結の議論ログを保持
+
+### 重要制約
+- スレッドは症例ごとに一意（1症例1スレッド）
+- 症例アクセス権のないユーザーは、該当症例のチャット/ディスカッションにアクセス不可
+- メッセージは空データ禁止（本文/音声URL/アノテーションのいずれか必須）
+
+---
+
+## 5. DB仕様（復元可能な粒度）
+
+## 5.1 マイグレーション適用順
+`apps/api/supabase/migrations` を順番に適用します。
+
+1. `0000_base_schema.sql`（基本スキーマ）
+2. `0012_add_audit_logs.sql`
+3. `0013_communication_tables.sql`
+4. `0014_permissions_system.sql`
+5. `0015_clinical_data.sql`
+6. `0016_case_discussions.sql`
+7. `0017_communication_integrity.sql`
+8. `9999_seed_data.sql`（初期データ）
+
+> docker-composeでは `db` サービスの `docker-entrypoint-initdb.d` にマウントされ、初回起動時に実行されます。
+
+## 5.2 データベースエンジン
+- PostgreSQL 15
+- UUID主キー中心
+- JSONBで問診・所見・アノテーション等を表現
+
+## 5.3 代表テーブル仕様（要点）
+
+### screenings（症例）
+- 主キー: `id UUID`
+- 外部キー:
+  - `client_order_id -> client_orders.id`
+  - `examinee_id -> examinees.id`
+- 主データ:
+  - `screening_date`, `urgency_flag`, `status`
+  - `blood_pressure_*`, `has_diabetes`, `smoking_status`
+  - `chief_complaint`, `symptoms_json`, `ophthalmic_exam_json`
+
+### images（画像）
+- 主キー: `id UUID`
+- 外部キー: `screening_id -> screenings.id`
+- 主データ:
+  - `eye_side`, `image_type`, `storage_key`, `sha256_hash`
+  - `annotations_json`
+
+### readings（読影）
+- 主キー: `id UUID`
+- 外部キー:
+  - `screening_id -> screenings.id`
+  - `assignment_id -> assignments.id`
+  - `physician_id -> physicians.id`
+- 主データ: `status`, `finding_text`, `judgment_code`
+
+### reading_reports（構造化レポート）
+- 主キー: `id UUID`
+- 外部キー:
+  - `reading_id -> readings.id`
+  - `screening_id -> screenings.id`
+  - `physician_id -> physicians.id`
+- 主データ:
+  - `findings_right_json`, `findings_left_json`
+  - `judgment_code`, `referral_required`, `report_text`
+
+### communication_threads / messages
+- `communication_threads.screening_id` が症例への参照軸
+- `messages.thread_id` で会話をスレッドへ紐づけ
+- 1症例1スレッド、メッセージ実体必須制約あり
+
+---
+
+## 6. API責務（主要エンドポイント群）
+
+> 詳細は `apps/api/src/routes` 配下の実装に準拠します。
+
+- `auth`：ログイン/セッション
+- `screenings`：症例作成/一覧/更新
+- `images`, `uploads`：画像登録と保存連携
+- `viewer-data`：診断ビューア向け統合データ
+- `reading-reports`：所見保存・提出
+- `ops-*`：運用者向け管理
+- `accounting`：請求/支払集計
+- `communication`：症例チャットスレッド
+- `case-discussions`：症例コメント時系列
+
+### viewer-data の設計思想
+診断画面に必要なもの（症例・患者・画像URL・読影・既存レポート）を単一APIで取得し、GUIのID取り違えを防止します。
+
+---
+
+## 7. フロントエンド機能責務
+
+### 依頼元ポータル
+- 受診者登録
+- 症例登録
+- 画像アップロード
+- 結果閲覧
+
+### 読影ビューア
+- 症例情報パネル
+- 画像表示（左右眼/比較）
+- 所見入力
+- 症例チャット/症例ディスカッション
+
+### 運用管理
+- タスクボード
+- 品質管理（QC）
+- 組織管理/権限管理
+- 請求・支払ダッシュボード
+
+---
+
+## 8. ローカル環境復元手順（最短）
+
+## 8.1 前提
+- Docker / Docker Compose が利用可能
+- 5432, 3000, 5173 ポートが空いていること
+
+## 8.2 起動
+```bash
+docker compose up --build
+```
+
+起動後:
+- DB: `localhost:5432`
+- API: `localhost:3000`
+- Web: `localhost:5173`
+
+## 8.3 初期データ
+初回DB作成時に migration + seed が流れるため、デモアカウント/症例が投入されます。
+
+---
+
+## 9. 環境変数（代表）
+
+API側で主に以下を利用します。
+
+- `DATABASE_URL`（必須）
+- `NODE_ENV`
+- `AWS_REGION`
+- S3接続に必要な各種資格情報（運用環境で設定）
+
+Compose開発では `DATABASE_URL=postgres://postgres:postgres@db:5432/tfp` を使用します。
+
+---
+
+## 10. セキュリティ/整合性の設計原則
+
+1. **症例中心アクセス制御**
+   - admin/operator/client/physician の役割に応じて `screening` へのアクセスを制限
+2. **DB外部キーによる参照保全**
+   - 症例削除時に関連データをカスケードする箇所を明示
+3. **監査ログ**
+   - 主要操作は監査可能な形で保存
+4. **メッセージ整合性**
+   - 空メッセージの禁止
+   - 症例スレッド重複防止（1症例1スレッド）
+
+---
+
+## 11. 運用ガイド（本番想定）
+
+### バックアップ
+- PostgreSQLの定期ダンプ
+- 画像S3バケットのライフサイクルとバージョニング
+
+### 障害復旧
+1. DBをバックアップから復元
+2. APIを再起動
+3. 必要に応じて画像キー整合性をチェック
+
+### 監視
+- APIエラーレート
+- DB接続数・スロークエリ
+- 画像アップロード失敗率
+- 読影完了までのリードタイム
+
+---
+
+## 12. 仕様変更時の更新ルール
+
+以下を**同時更新**してください。
+
+- README（この統合仕様書）
+- `docs/spec/*` の該当資料
+- API実装 (`apps/api/src/routes`, `repositories`)
+- DBマイグレーション (`apps/api/supabase/migrations`)
+- フロント表示/入力制約 (`apps/web/src`)
+
+これにより、ドキュメントと実装の乖離を防ぎます。
+
+---
+
+## 13. 将来拡張（設計余地）
+
+- WebRTC本実装による症例連動ビデオ会議
+- AI補助読影（所見提案/アノテーション支援）
+- ベクトル検索による類似症例参照
+- FHIR連携の強化
+- 会計ロジックのルールエンジン化
+
+---
+
+## 14. 補足
+
+本READMEは「全体像の復元性」を重視して記述しています。  
+画面遷移・ER・業務フローの図表が必要な場合は `docs/spec` 配下を一次参照とし、最終的な実装挙動は `apps/api`, `apps/web` のコードを正としてください。

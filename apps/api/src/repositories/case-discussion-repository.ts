@@ -63,6 +63,20 @@ export class CaseDiscussionRepository {
         await this.db.query('DELETE FROM case_discussions WHERE id = $1', [id])
     }
 
+    async deleteOwnedMessage(id: string, userId: string, screeningId: string): Promise<boolean> {
+        const result = await this.db.query(
+            `
+            DELETE FROM case_discussions
+            WHERE id = $1
+              AND user_id = $2
+              AND screening_id = $3
+            `,
+            [id, userId, screeningId]
+        )
+
+        return (result.rowCount || 0) > 0
+    }
+
     async countByScreening(screeningId: string): Promise<number> {
         const result = await this.db.query<{ count: string }>(
             'SELECT COUNT(*)::text as count FROM case_discussions WHERE screening_id = $1',

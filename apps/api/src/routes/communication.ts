@@ -16,6 +16,11 @@ communicationRoutes.post('/screenings/:screeningId/thread', async (c) => {
     const body = await c.req.json().catch(() => ({}))
 
     const commRepo = new CommunicationRepository(pool)
+    const canAccess = await commRepo.canAccessScreeningThread(screeningId, user.id)
+    if (!canAccess) {
+        return c.json({ error: 'Forbidden for this screening' }, 403)
+    }
+
     const thread = await commRepo.getOrCreateThread(screeningId, body.title)
 
     // Auto join
@@ -28,6 +33,21 @@ communicationRoutes.post('/screenings/:screeningId/thread', async (c) => {
 communicationRoutes.get('/threads/:threadId/messages', async (c) => {
     const threadId = c.req.param('threadId')
     const commRepo = new CommunicationRepository(pool)
+
+    const thread = await commRepo.getThreadById(threadId)
+    if (!thread) {
+        return c.json({ error: 'Thread not found' }, 404)
+    }
+
+    const canAccess = await commRepo.canAccessScreeningThread(thread.screening_id, c.get('user').id)
+    if (!canAccess) {
+        return c.json({ error: 'Forbidden for this thread' }, 403)
+    }
+
+    const isParticipant = await commRepo.isThreadParticipant(threadId, c.get('user').id)
+    if (!isParticipant) {
+        await commRepo.joinThread(threadId, c.get('user').id)
+    }
 
     const messages = await commRepo.getMessages(threadId)
     return c.json({ messages })
@@ -45,6 +65,16 @@ communicationRoutes.post('/threads/:threadId/messages', async (c) => {
     }>()
 
     const commRepo = new CommunicationRepository(pool)
+
+    const thread = await commRepo.getThreadById(threadId)
+    if (!thread) {
+        return c.json({ error: 'Thread not found' }, 404)
+    }
+
+    const canAccess = await commRepo.canAccessScreeningThread(thread.screening_id, user.id)
+    if (!canAccess) {
+        return c.json({ error: 'Forbidden for this thread' }, 403)
+    }
 
     // Ensure user is in the thread participants (auto-join)
     await commRepo.joinThread(threadId, user.id)
